@@ -945,7 +945,12 @@ static int l_searcher(lua_State* const L) {
 }
 
 static int l_panic(lua_State* const L) {
+#ifndef NDEBUG
+    fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
+#else
     fprintf(stderr, "%s\n", lua_tostring(L, -1));
+#endif
+
     exit(EXIT_FAILURE);
 }
 
