@@ -4,3 +4,6 @@
 [submodule "src/3rdparty/sokol"]
 	path = src/3rdparty/sokol
 	url = https://github.com/floooh/sokol.git
+[submodule "src/3rdparty/zlib"]
+	path = src/3rdparty/zlib
+	url = https://github.com/madler/zlib.git
