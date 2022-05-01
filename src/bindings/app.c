@@ -197,7 +197,7 @@ static Event* event_push(lua_State* const L) {
         self->my_ref = LUA_NOREF;
     }
     else {
-        self = (Event*)lua_newuserdata(L, sizeof(*self));
+        self = lua_newuserdata(L, sizeof(*self));
         self->next = NULL;
         self->my_ref = LUA_NOREF;
 
@@ -425,7 +425,7 @@ static int desc_newindex(lua_State* const L) {
 #endif
 
 static Desc* desc_push(lua_State* const L) {
-    Desc* const self = (Desc*)lua_newuserdata(L, sizeof(*self));
+    Desc* const self = lua_newuserdata(L, sizeof(*self));
 
     if (luaL_newmetatable(L, SAPP_DESC_MT) != 0) {
         lua_pushcfunction(L, desc_index);
