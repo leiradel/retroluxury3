@@ -6,7 +6,7 @@ fetch.setup {}
 
 fetch.send {
     path = "main.lua",
-    chunk_size = 16,
+    chunk_size = 4096,
 
     callback = function(response)
         if response.fetched then
