@@ -669,7 +669,7 @@ static void l_regintconsts(lua_State* const L, IntConst const* const consts, siz
 ########  #######  ##     ##  #######  ##        ######## ##    ## #######  ######   #######  ##    ##  #######  ######## ####### ##     ## ##        ##        
 */
 
-LUAMOD_API int luaopen_sokol_app(lua_State* L) {
+LUAMOD_API int luaopen_sokol_app(lua_State* const L) {
     static luaL_Reg const functions[] = {
         {"isvalid", l_isvalid},
         {"width", l_width},
