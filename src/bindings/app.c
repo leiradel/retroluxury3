@@ -965,7 +965,7 @@ static int l_pcall(lua_State* const L, int const nargs, int const nres) {
     return ret;
 }
 
-static void l_initcb(void* const user_data) {
+static void initcb(void* const user_data) {
     lua_State* const L = user_data;
     lua_rawgeti(L, LUA_REGISTRYINDEX, init_cb_ref);
     
@@ -980,7 +980,7 @@ static void l_initcb(void* const user_data) {
     }
 }
 
-static void l_framecb(void* const user_data) {
+static void framecb(void* const user_data) {
     lua_State* const L = user_data;
     lua_rawgeti(L, LUA_REGISTRYINDEX, frame_cb_ref);
     
@@ -997,7 +997,7 @@ static void l_framecb(void* const user_data) {
     lua_gc(L, LUA_GCSTEP, 0);
 }
 
-static void l_cleanupcb(void* const user_data) {
+static void cleanupcb(void* const user_data) {
     lua_State* const L = user_data;
     lua_rawgeti(L, LUA_REGISTRYINDEX, cleanup_cb_ref);
     
@@ -1012,7 +1012,7 @@ static void l_cleanupcb(void* const user_data) {
     }
 }
 
-static void l_eventcb(sapp_event const* const event, void* const user_data) {
+static void eventcb(sapp_event const* const event, void* const user_data) {
     lua_State* const L = user_data;
     lua_rawgeti(L, LUA_REGISTRYINDEX, event_cb_ref);
     event_push(L)->event = *event;
@@ -1028,7 +1028,7 @@ static void l_eventcb(sapp_event const* const event, void* const user_data) {
     }
 }
 
-static void l_failcb(char const* error, void* const user_data) {
+static void failcb(char const* error, void* const user_data) {
     lua_State* const L = user_data;
     lua_rawgeti(L, LUA_REGISTRYINDEX, fail_cb_ref);
     lua_pushstring(L, error);
@@ -1107,11 +1107,11 @@ sapp_desc sokol_main(int argc, char* argv[]) {
 
     {
         desc.user_data = L;
-        desc.init_userdata_cb = l_initcb;
-        desc.frame_userdata_cb = l_framecb;
-        desc.cleanup_userdata_cb = l_cleanupcb;
-        desc.event_userdata_cb = l_eventcb;
-        desc.fail_userdata_cb = l_failcb;
+        desc.init_userdata_cb = initcb;
+        desc.frame_userdata_cb = framecb;
+        desc.cleanup_userdata_cb = cleanupcb;
+        desc.event_userdata_cb = eventcb;
+        desc.fail_userdata_cb = failcb;
 
         if (lua_getfield(L, 1, "init_cb") != LUA_TNIL) {
             luaL_checktype(L, -1, LUA_TFUNCTION);
