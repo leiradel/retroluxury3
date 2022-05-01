@@ -1,3 +1,5 @@
+src/bindings/app.lua.h
+
 # Prerequisites
 *.d
 
