@@ -660,16 +660,16 @@ static void l_regintconsts(lua_State* const L, IntConst const* const consts, siz
 }
 
 /*
-##       ##     ##    ###     #######  ########  ######## ##    ##          ######     ###    ########  ########  
-##       ##     ##   ## ##   ##     ## ##     ## ##       ###   ##         ##    ##   ## ##   ##     ## ##     ## 
-##       ##     ##  ##   ##  ##     ## ##     ## ##       ####  ##         ##        ##   ##  ##     ## ##     ## 
-##       ##     ## ##     ## ##     ## ########  ######   ## ## ##          ######  ##     ## ########  ########  
-##       ##     ## ######### ##     ## ##        ##       ##  ####               ## ######### ##        ##        
-##       ##     ## ##     ## ##     ## ##        ##       ##   ###         ##    ## ##     ## ##        ##        
-########  #######  ##     ##  #######  ##        ######## ##    ## #######  ######  ##     ## ##        ##        
+##       ##     ##    ###     #######  ########  ######## ##    ##          ######   #######  ##    ##  #######  ##                  ###    ########  ########  
+##       ##     ##   ## ##   ##     ## ##     ## ##       ###   ##         ##    ## ##     ## ##   ##  ##     ## ##                 ## ##   ##     ## ##     ## 
+##       ##     ##  ##   ##  ##     ## ##     ## ##       ####  ##         ##       ##     ## ##  ##   ##     ## ##                ##   ##  ##     ## ##     ## 
+##       ##     ## ##     ## ##     ## ########  ######   ## ## ##          ######  ##     ## #####    ##     ## ##               ##     ## ########  ########  
+##       ##     ## ######### ##     ## ##        ##       ##  ####               ## ##     ## ##  ##   ##     ## ##               ######### ##        ##        
+##       ##     ## ##     ## ##     ## ##        ##       ##   ###         ##    ## ##     ## ##   ##  ##     ## ##               ##     ## ##        ##        
+########  #######  ##     ##  #######  ##        ######## ##    ## #######  ######   #######  ##    ##  #######  ######## ####### ##     ## ##        ##        
 */
 
-LUAMOD_API int luaopen_sapp(lua_State* L) {
+LUAMOD_API int luaopen_sokol_app(lua_State* L) {
     static luaL_Reg const functions[] = {
         {"isvalid", l_isvalid},
         {"width", l_width},
@@ -918,7 +918,7 @@ static int l_searcher(lua_State* const L) {
     LUAMOD_API int luaopen_sapp(lua_State* L);
 
     static Module const modules[] = {
-        MODC("sapp", luaopen_sapp),
+        MODC("sokol.app", luaopen_sokol_app),
     };
 
     char const* const modname = lua_tostring(L, 1);
@@ -1084,7 +1084,7 @@ sapp_desc sokol_main(int argc, char* argv[]) {
 
     {
         static char const* const luamain =
-            "local sapp = require 'sapp'\n"
+            "local sapp = require 'sokol.app'\n"
             "for k, v in pairs(sapp) do print(k, v) end\n"
             "local dummy = function() end\n"
             "local event_cb = function(event) print(event, event.type) end\n"
