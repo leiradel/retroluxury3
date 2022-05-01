@@ -1,0 +1,6 @@
+[submodule "src/3rdparty/lua"]
+	path = src/3rdparty/lua
+	url = https://github.com/lua/lua.git
+[submodule "src/3rdparty/sokol"]
+	path = src/3rdparty/sokol
+	url = https://github.com/floooh/sokol.git
