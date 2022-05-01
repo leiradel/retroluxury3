@@ -1119,12 +1119,6 @@ sapp_desc sokol_main(int argc, char* argv[]) {
             exit(EXIT_FAILURE);
         }
 
-        printf("%d --------------------------------\n", lua_gettop(L));
-
-        for (int i = 1; i <= lua_gettop(L); i++) {
-            printf("%d %s\n", i, lua_typename(L, lua_type(L, i)));
-        }
-
         if (l_pcall(L, 0, 1) != LUA_OK) {
 #ifndef NDEBUG
             fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
