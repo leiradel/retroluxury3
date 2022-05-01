@@ -971,81 +971,92 @@ static int l_pcall(lua_State* const L, int const nargs, int const nres) {
 }
 
 static void initcb(void* const user_data) {
-    lua_State* const L = user_data;
-    lua_rawgeti(L, LUA_REGISTRYINDEX, init_cb_ref);
-    
-    if (l_pcall(L, 0, 0) != LUA_OK) {
+    if (init_cb_ref != LUA_NOREF) {
+        lua_State* const L = user_data;
+        lua_rawgeti(L, LUA_REGISTRYINDEX, init_cb_ref);
+        
+        if (l_pcall(L, 0, 0) != LUA_OK) {
 #ifndef NDEBUG
-        fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
+            fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
 #else
-        fprintf(stderr, "%s\n", lua_tostring(L, -1));
+            fprintf(stderr, "%s\n", lua_tostring(L, -1));
 #endif
 
-        sapp_quit();
+            sapp_quit();
+        }
     }
 }
 
 static void framecb(void* const user_data) {
     lua_State* const L = user_data;
-    lua_rawgeti(L, LUA_REGISTRYINDEX, frame_cb_ref);
-    
-    if (l_pcall(L, 0, 0) != LUA_OK) {
+
+    if (frame_cb_ref != LUA_NOREF) {
+        lua_rawgeti(L, LUA_REGISTRYINDEX, frame_cb_ref);
+        
+        if (l_pcall(L, 0, 0) != LUA_OK) {
 #ifndef NDEBUG
-        fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
+            fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
 #else
-        fprintf(stderr, "%s\n", lua_tostring(L, -1));
+            fprintf(stderr, "%s\n", lua_tostring(L, -1));
 #endif
 
-        sapp_quit();
+            sapp_quit();
+        }
     }
 
     lua_gc(L, LUA_GCSTEP, 0);
 }
 
 static void cleanupcb(void* const user_data) {
-    lua_State* const L = user_data;
-    lua_rawgeti(L, LUA_REGISTRYINDEX, cleanup_cb_ref);
-    
-    if (l_pcall(L, 0, 0) != LUA_OK) {
+    if (cleanup_cb_ref != LUA_NOREF) {
+        lua_State* const L = user_data;
+        lua_rawgeti(L, LUA_REGISTRYINDEX, cleanup_cb_ref);
+        
+        if (l_pcall(L, 0, 0) != LUA_OK) {
 #ifndef NDEBUG
-        fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
+            fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
 #else
-        fprintf(stderr, "%s\n", lua_tostring(L, -1));
+            fprintf(stderr, "%s\n", lua_tostring(L, -1));
 #endif
 
-        sapp_quit();
+            sapp_quit();
+        }
     }
 }
 
 static void eventcb(sapp_event const* const event, void* const user_data) {
-    lua_State* const L = user_data;
-    lua_rawgeti(L, LUA_REGISTRYINDEX, event_cb_ref);
-    event_push(L)->event = *event;
+    if (event_cb_ref != LUA_NOREF) {
+        lua_State* const L = user_data;
+        lua_rawgeti(L, LUA_REGISTRYINDEX, event_cb_ref);
+        event_push(L)->event = *event;
 
-    if (l_pcall(L, 1, 0) != LUA_OK) {
+        if (l_pcall(L, 1, 0) != LUA_OK) {
 #ifndef NDEBUG
-        fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
+            fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
 #else
-        fprintf(stderr, "%s\n", lua_tostring(L, -1));
+            fprintf(stderr, "%s\n", lua_tostring(L, -1));
 #endif
 
-        sapp_quit();
+            sapp_quit();
+        }
     }
 }
 
 static void failcb(char const* error, void* const user_data) {
-    lua_State* const L = user_data;
-    lua_rawgeti(L, LUA_REGISTRYINDEX, fail_cb_ref);
-    lua_pushstring(L, error);
-    
-    if (l_pcall(L, 1, 0) != LUA_OK) {
+    if (fail_cb_ref != LUA_NOREF) {
+        lua_State* const L = user_data;
+        lua_rawgeti(L, LUA_REGISTRYINDEX, fail_cb_ref);
+        lua_pushstring(L, error);
+        
+        if (l_pcall(L, 1, 0) != LUA_OK) {
 #ifndef NDEBUG
-        fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
+            fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
 #else
-        fprintf(stderr, "%s\n", lua_tostring(L, -1));
+            fprintf(stderr, "%s\n", lua_tostring(L, -1));
 #endif
 
-        sapp_quit();
+            sapp_quit();
+        }
     }
 }
 
