@@ -19,9 +19,17 @@ endif
 	@echo "Compiling: $@"
 	@$(CC) $(CFLAGS) -Wall -Werror -c "$<" -o "$@"
 
+%.lua.h: %.lua
+	@echo "Creating header: $@"
+	@echo "static char const `basename "$<" | sed 's/\./_/'`[] = {`cat "$<" | xxd -i`};" > "$@"
+
 ENGINE_OBJS = \
 	src/bindings/app.o \
-	src/bindings/djb2.o
+	src/bindings/djb2.o \
+	src/bindings/fetch.o
+
+ENGINE_LUA = \
+	src/bindings/app.lua.h
 
 LUA_OBJS = \
 	src/3rdparty/lua/onelua.o
@@ -34,6 +42,8 @@ all: main
 main: $(RETROLUXURY3_OBJS) $(3RDPARTY_OBJS)
 	@echo "Creating executable: $@"
 	@$(CC) -o "$@" $+ $(LIBS)
+
+src/bindings/app.o: src/bindings/app.lua.h
 
 src/3rdparty/lua/onelua.o: src/3rdparty/lua/onelua.c
 	@echo "Compiling: $@"
@@ -49,7 +59,7 @@ src/generated/version.h: FORCE
 
 clean: FORCE
 	@echo "Cleaning up"
-	@rm -f libretroluxury3.a $(RETROLUXURY3_OBJS)
+	@rm -f libretroluxury3.a $(RETROLUXURY3_OBJS) $(ENGINE_LUA)
 	@rm -f src/generated/version.h
 
 distclean: clean

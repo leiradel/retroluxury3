@@ -14,6 +14,8 @@
 
 #include "djb2.h"
 
+#include "app.lua.h"
+
 /*
  ######     ###    ########  ########          ######## ##     ## ######## ##    ## ######## 
 ##    ##   ## ##   ##     ## ##     ##         ##       ##     ## ##       ###   ##    ##    
@@ -912,9 +914,11 @@ Module;
 
 static int l_searcher(lua_State* const L) {
     LUAMOD_API int luaopen_sapp(lua_State* L);
+    LUAMOD_API int luaopen_sokol_fetch(lua_State* const L);
 
     static Module const modules[] = {
         MODC("sokol.app", luaopen_sokol_app),
+        MODC("sokol.fetch", luaopen_sokol_fetch),
     };
 
     char const* const modname = lua_tostring(L, 1);
@@ -1079,21 +1083,39 @@ sapp_desc sokol_main(int argc, char* argv[]) {
     }
 
     {
-        static char const* const luamain =
-            "local sapp = require 'sokol.app'\n"
-            "for k, v in pairs(sapp) do print(k, v) end\n"
-            "local dummy = function() end\n"
-            "local event_cb = function(event) print(event, event.type) end\n"
-            "local fail_cb = function(msg) error('fail_cb', msg) end\n"
-            "return {init_cb=dummy, frame_cb=dummy, cleanup_cb=dummy, event_cb=event_cb, fail_cb=dummy, width=320, height=240}\n";
-
-        if (luaL_loadbufferx(L, luamain, strlen(luamain), "main.lua", "t") != LUA_OK) {
+        if (luaL_loadbufferx(L, app_lua, sizeof(app_lua) / sizeof(app_lua[0]), "bootstrap.lua", "t") != LUA_OK) {
+#ifndef NDEBUG
+            fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
+#else
             fprintf(stderr, "%s\n", lua_tostring(L, -1));
+#endif
+
             exit(EXIT_FAILURE);
         }
 
         if (l_pcall(L, 0, 1) != LUA_OK) {
+#ifndef NDEBUG
+            fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
+#else
             fprintf(stderr, "%s\n", lua_tostring(L, -1));
+#endif
+
+            exit(EXIT_FAILURE);
+        }
+
+        printf("%d --------------------------------\n", lua_gettop(L));
+
+        for (int i = 1; i <= lua_gettop(L); i++) {
+            printf("%d %s\n", i, lua_typename(L, lua_type(L, i)));
+        }
+
+        if (l_pcall(L, 0, 1) != LUA_OK) {
+#ifndef NDEBUG
+            fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
+#else
+            fprintf(stderr, "%s\n", lua_tostring(L, -1));
+#endif
+
             exit(EXIT_FAILURE);
         }
     }
