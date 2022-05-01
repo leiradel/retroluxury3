@@ -142,9 +142,7 @@ static int event_index(lua_State* const L) {
 
 #ifndef NDEBUG
 static int event_newindex(lua_State* const L) {
-    Event const* const self = event_check(L, 1);
-    (void)self;
-
+    event_check(L, 1);
     char const* const key = luaL_checkstring(L, 2);
     djb2_hash const hash = djb2(key);
 
@@ -384,9 +382,7 @@ static int desc_index(lua_State* const L) {
 
 #ifndef NDEBUG
 static int desc_newindex(lua_State* const L) {
-    Desc const* const self = desc_check(L, 1);
-    (void)self;
-
+    desc_check(L, 1);
     char const* const key = luaL_checkstring(L, 2);
     djb2_hash const hash = djb2(key);
 
