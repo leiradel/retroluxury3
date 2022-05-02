@@ -8,7 +8,6 @@ return function(fetch)
         
             callback = function(response)
                 if response.fetched then
-                    print(response.buffer)
                     data[#data + 1] = response.buffer
                 end
 
