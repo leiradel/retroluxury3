@@ -354,11 +354,19 @@ typedef struct {
 }
 IntConst;
 
-static void l_regintconsts(lua_State* const L, IntConst const* const consts, size_t const count) {
+static void l_regintconsts(lua_State* const L, char const* const name, IntConst const* const consts, size_t const count) {
+    lua_createtable(L, count, 0);
+
     for (size_t i = 0; i < count; i++) {
+        lua_pushstring(L, consts[i].name);
         lua_pushinteger(L, consts[i].value);
-        lua_setfield(L, -2, consts[i].name);
+        lua_rawset(L, -3);
+
+        lua_pushstring(L, consts[i].name);
+        lua_rawseti(L, -2, consts[i].value);
     }
+
+    lua_setfield(L, -2, name);
 }
 
 static int l_setup(lua_State* const L) {
@@ -512,16 +520,16 @@ LUAMOD_API int luaopen_sokol_fetch(lua_State* const L) {
     luaL_newlib(L, functions);
 
     static IntConst const error_consts[] = {
-        {"ERROR_NO_ERROR", SFETCH_ERROR_NO_ERROR},
-        {"ERROR_FILE_NOT_FOUND", SFETCH_ERROR_FILE_NOT_FOUND},
-        {"ERROR_NO_BUFFER", SFETCH_ERROR_NO_BUFFER},
-        {"ERROR_BUFFER_TOO_SMALL", SFETCH_ERROR_BUFFER_TOO_SMALL},
-        {"ERROR_UNEXPECTED_EOF", SFETCH_ERROR_UNEXPECTED_EOF},
-        {"ERROR_INVALID_HTTP_STATUS", SFETCH_ERROR_INVALID_HTTP_STATUS},
-        {"ERROR_CANCELLED", SFETCH_ERROR_CANCELLED}
+        {"NO_ERROR", SFETCH_ERROR_NO_ERROR},
+        {"FILE_NOT_FOUND", SFETCH_ERROR_FILE_NOT_FOUND},
+        {"NO_BUFFER", SFETCH_ERROR_NO_BUFFER},
+        {"BUFFER_TOO_SMALL", SFETCH_ERROR_BUFFER_TOO_SMALL},
+        {"UNEXPECTED_EOF", SFETCH_ERROR_UNEXPECTED_EOF},
+        {"INVALID_HTTP_STATUS", SFETCH_ERROR_INVALID_HTTP_STATUS},
+        {"CANCELLED", SFETCH_ERROR_CANCELLED}
     };
 
-    l_regintconsts(L, error_consts, sizeof(error_consts) / sizeof(error_consts[0]));
+    l_regintconsts(L, "error", error_consts, sizeof(error_consts) / sizeof(error_consts[0]));
 
     {
         if (luaL_loadbufferx(L, fetch_lua, sizeof(fetch_lua) / sizeof(fetch_lua[0]), "fetch.lua", "t") != LUA_OK) {
