@@ -13,6 +13,7 @@
 #include <sokol_app.h>
 
 #include "djb2.h"
+#include "lutil.h"
 
 #include "app.lua.h"
 
@@ -654,19 +655,6 @@ static int l_html5_get_dropped_file_size(lua_State* L) {
 ########  #######  ##     ##  #######  ##        ######## ##    ## #######  ######   #######  ##    ##  #######  ######## ####### ##     ## ##        ##        
 */
 
-typedef struct {
-    char const* name;
-    lua_Integer value;
-}
-IntConst;
-
-static void l_regintconsts(lua_State* const L, IntConst const* const consts, size_t const count) {
-    for (size_t i = 0; i < count; i++) {
-        lua_pushinteger(L, consts[i].value);
-        lua_setfield(L, -2, consts[i].name);
-    }
-}
-
 LUAMOD_API int luaopen_sokol_app(lua_State* const L) {
     static luaL_Reg const functions[] = {
         {"isvalid", l_isvalid},
@@ -707,182 +695,182 @@ LUAMOD_API int luaopen_sokol_app(lua_State* const L) {
 
     luaL_newlib(L, functions);
 
-    static IntConst const event_consts[] = {
-        {"EVENTTYPE_INVALID", SAPP_EVENTTYPE_INVALID},
-        {"EVENTTYPE_KEY_DOWN", SAPP_EVENTTYPE_KEY_DOWN},
-        {"EVENTTYPE_KEY_UP", SAPP_EVENTTYPE_KEY_UP},
-        {"EVENTTYPE_CHAR", SAPP_EVENTTYPE_CHAR},
-        {"EVENTTYPE_MOUSE_DOWN", SAPP_EVENTTYPE_MOUSE_DOWN},
-        {"EVENTTYPE_MOUSE_UP", SAPP_EVENTTYPE_MOUSE_UP},
-        {"EVENTTYPE_MOUSE_SCROLL", SAPP_EVENTTYPE_MOUSE_SCROLL},
-        {"EVENTTYPE_MOUSE_MOVE", SAPP_EVENTTYPE_MOUSE_MOVE},
-        {"EVENTTYPE_MOUSE_ENTER", SAPP_EVENTTYPE_MOUSE_ENTER},
-        {"EVENTTYPE_MOUSE_LEAVE", SAPP_EVENTTYPE_MOUSE_LEAVE},
-        {"EVENTTYPE_TOUCHES_BEGAN", SAPP_EVENTTYPE_TOUCHES_BEGAN},
-        {"EVENTTYPE_TOUCHES_MOVED", SAPP_EVENTTYPE_TOUCHES_MOVED},
-        {"EVENTTYPE_TOUCHES_ENDED", SAPP_EVENTTYPE_TOUCHES_ENDED},
-        {"EVENTTYPE_TOUCHES_CANCELLED", SAPP_EVENTTYPE_TOUCHES_CANCELLED},
-        {"EVENTTYPE_RESIZED", SAPP_EVENTTYPE_RESIZED},
-        {"EVENTTYPE_ICONIFIED", SAPP_EVENTTYPE_ICONIFIED},
-        {"EVENTTYPE_RESTORED", SAPP_EVENTTYPE_RESTORED},
-        {"EVENTTYPE_FOCUSED", SAPP_EVENTTYPE_FOCUSED},
-        {"EVENTTYPE_UNFOCUSED", SAPP_EVENTTYPE_UNFOCUSED},
-        {"EVENTTYPE_SUSPENDED", SAPP_EVENTTYPE_SUSPENDED},
-        {"EVENTTYPE_RESUMED", SAPP_EVENTTYPE_RESUMED},
-        {"EVENTTYPE_UPDATE_CURSOR", SAPP_EVENTTYPE_UPDATE_CURSOR},
-        {"EVENTTYPE_QUIT_REQUESTED", SAPP_EVENTTYPE_QUIT_REQUESTED},
-        {"EVENTTYPE_CLIPBOARD_PASTED", SAPP_EVENTTYPE_CLIPBOARD_PASTED},
-        {"EVENTTYPE_FILES_DROPPED", SAPP_EVENTTYPE_FILES_DROPPED}
+    static lutil_IntConst const event_consts[] = {
+        {"INVALID", SAPP_EVENTTYPE_INVALID},
+        {"KEY_DOWN", SAPP_EVENTTYPE_KEY_DOWN},
+        {"KEY_UP", SAPP_EVENTTYPE_KEY_UP},
+        {"CHAR", SAPP_EVENTTYPE_CHAR},
+        {"MOUSE_DOWN", SAPP_EVENTTYPE_MOUSE_DOWN},
+        {"MOUSE_UP", SAPP_EVENTTYPE_MOUSE_UP},
+        {"MOUSE_SCROLL", SAPP_EVENTTYPE_MOUSE_SCROLL},
+        {"MOUSE_MOVE", SAPP_EVENTTYPE_MOUSE_MOVE},
+        {"MOUSE_ENTER", SAPP_EVENTTYPE_MOUSE_ENTER},
+        {"MOUSE_LEAVE", SAPP_EVENTTYPE_MOUSE_LEAVE},
+        {"TOUCHES_BEGAN", SAPP_EVENTTYPE_TOUCHES_BEGAN},
+        {"TOUCHES_MOVED", SAPP_EVENTTYPE_TOUCHES_MOVED},
+        {"TOUCHES_ENDED", SAPP_EVENTTYPE_TOUCHES_ENDED},
+        {"TOUCHES_CANCELLED", SAPP_EVENTTYPE_TOUCHES_CANCELLED},
+        {"RESIZED", SAPP_EVENTTYPE_RESIZED},
+        {"ICONIFIED", SAPP_EVENTTYPE_ICONIFIED},
+        {"RESTORED", SAPP_EVENTTYPE_RESTORED},
+        {"FOCUSED", SAPP_EVENTTYPE_FOCUSED},
+        {"UNFOCUSED", SAPP_EVENTTYPE_UNFOCUSED},
+        {"SUSPENDED", SAPP_EVENTTYPE_SUSPENDED},
+        {"RESUMED", SAPP_EVENTTYPE_RESUMED},
+        {"UPDATE_CURSOR", SAPP_EVENTTYPE_UPDATE_CURSOR},
+        {"QUIT_REQUESTED", SAPP_EVENTTYPE_QUIT_REQUESTED},
+        {"CLIPBOARD_PASTED", SAPP_EVENTTYPE_CLIPBOARD_PASTED},
+        {"FILES_DROPPED", SAPP_EVENTTYPE_FILES_DROPPED}
     };
 
-    l_regintconsts(L, event_consts, sizeof(event_consts) / sizeof(event_consts[0]));
+    lutil_regintconsts(L, "eventtype", event_consts, sizeof(event_consts) / sizeof(event_consts[0]));
 
-    static IntConst const keycode_consts[] = {
-        {"KEYCODE_INVALID", SAPP_KEYCODE_INVALID},
-        {"KEYCODE_SPACE", SAPP_KEYCODE_SPACE},
-        {"KEYCODE_APOSTROPHE", SAPP_KEYCODE_APOSTROPHE},
-        {"KEYCODE_COMMA", SAPP_KEYCODE_COMMA},
-        {"KEYCODE_MINUS", SAPP_KEYCODE_MINUS},
-        {"KEYCODE_PERIOD", SAPP_KEYCODE_PERIOD},
-        {"KEYCODE_SLASH", SAPP_KEYCODE_SLASH},
-        {"KEYCODE_0", SAPP_KEYCODE_0},
-        {"KEYCODE_1", SAPP_KEYCODE_1},
-        {"KEYCODE_2", SAPP_KEYCODE_2},
-        {"KEYCODE_3", SAPP_KEYCODE_3},
-        {"KEYCODE_4", SAPP_KEYCODE_4},
-        {"KEYCODE_5", SAPP_KEYCODE_5},
-        {"KEYCODE_6", SAPP_KEYCODE_6},
-        {"KEYCODE_7", SAPP_KEYCODE_7},
-        {"KEYCODE_8", SAPP_KEYCODE_8},
-        {"KEYCODE_9", SAPP_KEYCODE_9},
-        {"KEYCODE_SEMICOLON", SAPP_KEYCODE_SEMICOLON},
-        {"KEYCODE_EQUAL", SAPP_KEYCODE_EQUAL},
-        {"KEYCODE_A", SAPP_KEYCODE_A},
-        {"KEYCODE_B", SAPP_KEYCODE_B},
-        {"KEYCODE_C", SAPP_KEYCODE_C},
-        {"KEYCODE_D", SAPP_KEYCODE_D},
-        {"KEYCODE_E", SAPP_KEYCODE_E},
-        {"KEYCODE_F", SAPP_KEYCODE_F},
-        {"KEYCODE_G", SAPP_KEYCODE_G},
-        {"KEYCODE_H", SAPP_KEYCODE_H},
-        {"KEYCODE_I", SAPP_KEYCODE_I},
-        {"KEYCODE_J", SAPP_KEYCODE_J},
-        {"KEYCODE_K", SAPP_KEYCODE_K},
-        {"KEYCODE_L", SAPP_KEYCODE_L},
-        {"KEYCODE_M", SAPP_KEYCODE_M},
-        {"KEYCODE_N", SAPP_KEYCODE_N},
-        {"KEYCODE_O", SAPP_KEYCODE_O},
-        {"KEYCODE_P", SAPP_KEYCODE_P},
-        {"KEYCODE_Q", SAPP_KEYCODE_Q},
-        {"KEYCODE_R", SAPP_KEYCODE_R},
-        {"KEYCODE_S", SAPP_KEYCODE_S},
-        {"KEYCODE_T", SAPP_KEYCODE_T},
-        {"KEYCODE_U", SAPP_KEYCODE_U},
-        {"KEYCODE_V", SAPP_KEYCODE_V},
-        {"KEYCODE_W", SAPP_KEYCODE_W},
-        {"KEYCODE_X", SAPP_KEYCODE_X},
-        {"KEYCODE_Y", SAPP_KEYCODE_Y},
-        {"KEYCODE_Z", SAPP_KEYCODE_Z},
-        {"KEYCODE_LEFT_BRACKET", SAPP_KEYCODE_LEFT_BRACKET},
-        {"KEYCODE_BACKSLASH", SAPP_KEYCODE_BACKSLASH},
-        {"KEYCODE_RIGHT_BRACKET", SAPP_KEYCODE_RIGHT_BRACKET},
-        {"KEYCODE_GRAVE_ACCENT", SAPP_KEYCODE_GRAVE_ACCENT},
-        {"KEYCODE_WORLD_1", SAPP_KEYCODE_WORLD_1},
-        {"KEYCODE_WORLD_2", SAPP_KEYCODE_WORLD_2},
-        {"KEYCODE_ESCAPE", SAPP_KEYCODE_ESCAPE},
-        {"KEYCODE_ENTER", SAPP_KEYCODE_ENTER},
-        {"KEYCODE_TAB", SAPP_KEYCODE_TAB},
-        {"KEYCODE_BACKSPACE", SAPP_KEYCODE_BACKSPACE},
-        {"KEYCODE_INSERT", SAPP_KEYCODE_INSERT},
-        {"KEYCODE_DELETE", SAPP_KEYCODE_DELETE},
-        {"KEYCODE_RIGHT", SAPP_KEYCODE_RIGHT},
-        {"KEYCODE_LEFT", SAPP_KEYCODE_LEFT},
-        {"KEYCODE_DOWN", SAPP_KEYCODE_DOWN},
-        {"KEYCODE_UP", SAPP_KEYCODE_UP},
-        {"KEYCODE_PAGE_UP", SAPP_KEYCODE_PAGE_UP},
-        {"KEYCODE_PAGE_DOWN", SAPP_KEYCODE_PAGE_DOWN},
-        {"KEYCODE_HOME", SAPP_KEYCODE_HOME},
-        {"KEYCODE_END", SAPP_KEYCODE_END},
-        {"KEYCODE_CAPS_LOCK", SAPP_KEYCODE_CAPS_LOCK},
-        {"KEYCODE_SCROLL_LOCK", SAPP_KEYCODE_SCROLL_LOCK},
-        {"KEYCODE_NUM_LOCK", SAPP_KEYCODE_NUM_LOCK},
-        {"KEYCODE_PRINT_SCREEN", SAPP_KEYCODE_PRINT_SCREEN},
-        {"KEYCODE_PAUSE", SAPP_KEYCODE_PAUSE},
-        {"KEYCODE_F1", SAPP_KEYCODE_F1},
-        {"KEYCODE_F2", SAPP_KEYCODE_F2},
-        {"KEYCODE_F3", SAPP_KEYCODE_F3},
-        {"KEYCODE_F4", SAPP_KEYCODE_F4},
-        {"KEYCODE_F5", SAPP_KEYCODE_F5},
-        {"KEYCODE_F6", SAPP_KEYCODE_F6},
-        {"KEYCODE_F7", SAPP_KEYCODE_F7},
-        {"KEYCODE_F8", SAPP_KEYCODE_F8},
-        {"KEYCODE_F9", SAPP_KEYCODE_F9},
-        {"KEYCODE_F10", SAPP_KEYCODE_F10},
-        {"KEYCODE_F11", SAPP_KEYCODE_F11},
-        {"KEYCODE_F12", SAPP_KEYCODE_F12},
-        {"KEYCODE_F13", SAPP_KEYCODE_F13},
-        {"KEYCODE_F14", SAPP_KEYCODE_F14},
-        {"KEYCODE_F15", SAPP_KEYCODE_F15},
-        {"KEYCODE_F16", SAPP_KEYCODE_F16},
-        {"KEYCODE_F17", SAPP_KEYCODE_F17},
-        {"KEYCODE_F18", SAPP_KEYCODE_F18},
-        {"KEYCODE_F19", SAPP_KEYCODE_F19},
-        {"KEYCODE_F20", SAPP_KEYCODE_F20},
-        {"KEYCODE_F21", SAPP_KEYCODE_F21},
-        {"KEYCODE_F22", SAPP_KEYCODE_F22},
-        {"KEYCODE_F23", SAPP_KEYCODE_F23},
-        {"KEYCODE_F24", SAPP_KEYCODE_F24},
-        {"KEYCODE_F25", SAPP_KEYCODE_F25},
-        {"KEYCODE_KP_0", SAPP_KEYCODE_KP_0},
-        {"KEYCODE_KP_1", SAPP_KEYCODE_KP_1},
-        {"KEYCODE_KP_2", SAPP_KEYCODE_KP_2},
-        {"KEYCODE_KP_3", SAPP_KEYCODE_KP_3},
-        {"KEYCODE_KP_4", SAPP_KEYCODE_KP_4},
-        {"KEYCODE_KP_5", SAPP_KEYCODE_KP_5},
-        {"KEYCODE_KP_6", SAPP_KEYCODE_KP_6},
-        {"KEYCODE_KP_7", SAPP_KEYCODE_KP_7},
-        {"KEYCODE_KP_8", SAPP_KEYCODE_KP_8},
-        {"KEYCODE_KP_9", SAPP_KEYCODE_KP_9},
-        {"KEYCODE_KP_DECIMAL", SAPP_KEYCODE_KP_DECIMAL},
-        {"KEYCODE_KP_DIVIDE", SAPP_KEYCODE_KP_DIVIDE},
-        {"KEYCODE_KP_MULTIPLY", SAPP_KEYCODE_KP_MULTIPLY},
-        {"KEYCODE_KP_SUBTRACT", SAPP_KEYCODE_KP_SUBTRACT},
-        {"KEYCODE_KP_ADD", SAPP_KEYCODE_KP_ADD},
-        {"KEYCODE_KP_ENTER", SAPP_KEYCODE_KP_ENTER},
-        {"KEYCODE_KP_EQUAL", SAPP_KEYCODE_KP_EQUAL},
-        {"KEYCODE_LEFT_SHIFT", SAPP_KEYCODE_LEFT_SHIFT},
-        {"KEYCODE_LEFT_CONTROL", SAPP_KEYCODE_LEFT_CONTROL},
-        {"KEYCODE_LEFT_ALT", SAPP_KEYCODE_LEFT_ALT},
-        {"KEYCODE_LEFT_SUPER", SAPP_KEYCODE_LEFT_SUPER},
-        {"KEYCODE_RIGHT_SHIFT", SAPP_KEYCODE_RIGHT_SHIFT},
-        {"KEYCODE_RIGHT_CONTROL", SAPP_KEYCODE_RIGHT_CONTROL},
-        {"KEYCODE_RIGHT_ALT", SAPP_KEYCODE_RIGHT_ALT},
-        {"KEYCODE_RIGHT_SUPER", SAPP_KEYCODE_RIGHT_SUPER},
-        {"KEYCODE_MENU", SAPP_KEYCODE_MENU}
+    static lutil_IntConst const keycode_consts[] = {
+        {"INVALID", SAPP_KEYCODE_INVALID},
+        {"SPACE", SAPP_KEYCODE_SPACE},
+        {"APOSTROPHE", SAPP_KEYCODE_APOSTROPHE},
+        {"COMMA", SAPP_KEYCODE_COMMA},
+        {"MINUS", SAPP_KEYCODE_MINUS},
+        {"PERIOD", SAPP_KEYCODE_PERIOD},
+        {"SLASH", SAPP_KEYCODE_SLASH},
+        {"0", SAPP_KEYCODE_0},
+        {"1", SAPP_KEYCODE_1},
+        {"2", SAPP_KEYCODE_2},
+        {"3", SAPP_KEYCODE_3},
+        {"4", SAPP_KEYCODE_4},
+        {"5", SAPP_KEYCODE_5},
+        {"6", SAPP_KEYCODE_6},
+        {"7", SAPP_KEYCODE_7},
+        {"8", SAPP_KEYCODE_8},
+        {"9", SAPP_KEYCODE_9},
+        {"SEMICOLON", SAPP_KEYCODE_SEMICOLON},
+        {"EQUAL", SAPP_KEYCODE_EQUAL},
+        {"A", SAPP_KEYCODE_A},
+        {"B", SAPP_KEYCODE_B},
+        {"C", SAPP_KEYCODE_C},
+        {"D", SAPP_KEYCODE_D},
+        {"E", SAPP_KEYCODE_E},
+        {"F", SAPP_KEYCODE_F},
+        {"G", SAPP_KEYCODE_G},
+        {"H", SAPP_KEYCODE_H},
+        {"I", SAPP_KEYCODE_I},
+        {"J", SAPP_KEYCODE_J},
+        {"K", SAPP_KEYCODE_K},
+        {"L", SAPP_KEYCODE_L},
+        {"M", SAPP_KEYCODE_M},
+        {"N", SAPP_KEYCODE_N},
+        {"O", SAPP_KEYCODE_O},
+        {"P", SAPP_KEYCODE_P},
+        {"Q", SAPP_KEYCODE_Q},
+        {"R", SAPP_KEYCODE_R},
+        {"S", SAPP_KEYCODE_S},
+        {"T", SAPP_KEYCODE_T},
+        {"U", SAPP_KEYCODE_U},
+        {"V", SAPP_KEYCODE_V},
+        {"W", SAPP_KEYCODE_W},
+        {"X", SAPP_KEYCODE_X},
+        {"Y", SAPP_KEYCODE_Y},
+        {"Z", SAPP_KEYCODE_Z},
+        {"LEFT_BRACKET", SAPP_KEYCODE_LEFT_BRACKET},
+        {"BACKSLASH", SAPP_KEYCODE_BACKSLASH},
+        {"RIGHT_BRACKET", SAPP_KEYCODE_RIGHT_BRACKET},
+        {"GRAVE_ACCENT", SAPP_KEYCODE_GRAVE_ACCENT},
+        {"WORLD_1", SAPP_KEYCODE_WORLD_1},
+        {"WORLD_2", SAPP_KEYCODE_WORLD_2},
+        {"ESCAPE", SAPP_KEYCODE_ESCAPE},
+        {"ENTER", SAPP_KEYCODE_ENTER},
+        {"TAB", SAPP_KEYCODE_TAB},
+        {"BACKSPACE", SAPP_KEYCODE_BACKSPACE},
+        {"INSERT", SAPP_KEYCODE_INSERT},
+        {"DELETE", SAPP_KEYCODE_DELETE},
+        {"RIGHT", SAPP_KEYCODE_RIGHT},
+        {"LEFT", SAPP_KEYCODE_LEFT},
+        {"DOWN", SAPP_KEYCODE_DOWN},
+        {"UP", SAPP_KEYCODE_UP},
+        {"PAGE_UP", SAPP_KEYCODE_PAGE_UP},
+        {"PAGE_DOWN", SAPP_KEYCODE_PAGE_DOWN},
+        {"HOME", SAPP_KEYCODE_HOME},
+        {"END", SAPP_KEYCODE_END},
+        {"CAPS_LOCK", SAPP_KEYCODE_CAPS_LOCK},
+        {"SCROLL_LOCK", SAPP_KEYCODE_SCROLL_LOCK},
+        {"NUM_LOCK", SAPP_KEYCODE_NUM_LOCK},
+        {"PRINT_SCREEN", SAPP_KEYCODE_PRINT_SCREEN},
+        {"PAUSE", SAPP_KEYCODE_PAUSE},
+        {"F1", SAPP_KEYCODE_F1},
+        {"F2", SAPP_KEYCODE_F2},
+        {"F3", SAPP_KEYCODE_F3},
+        {"F4", SAPP_KEYCODE_F4},
+        {"F5", SAPP_KEYCODE_F5},
+        {"F6", SAPP_KEYCODE_F6},
+        {"F7", SAPP_KEYCODE_F7},
+        {"F8", SAPP_KEYCODE_F8},
+        {"F9", SAPP_KEYCODE_F9},
+        {"F10", SAPP_KEYCODE_F10},
+        {"F11", SAPP_KEYCODE_F11},
+        {"F12", SAPP_KEYCODE_F12},
+        {"F13", SAPP_KEYCODE_F13},
+        {"F14", SAPP_KEYCODE_F14},
+        {"F15", SAPP_KEYCODE_F15},
+        {"F16", SAPP_KEYCODE_F16},
+        {"F17", SAPP_KEYCODE_F17},
+        {"F18", SAPP_KEYCODE_F18},
+        {"F19", SAPP_KEYCODE_F19},
+        {"F20", SAPP_KEYCODE_F20},
+        {"F21", SAPP_KEYCODE_F21},
+        {"F22", SAPP_KEYCODE_F22},
+        {"F23", SAPP_KEYCODE_F23},
+        {"F24", SAPP_KEYCODE_F24},
+        {"F25", SAPP_KEYCODE_F25},
+        {"KP_0", SAPP_KEYCODE_KP_0},
+        {"KP_1", SAPP_KEYCODE_KP_1},
+        {"KP_2", SAPP_KEYCODE_KP_2},
+        {"KP_3", SAPP_KEYCODE_KP_3},
+        {"KP_4", SAPP_KEYCODE_KP_4},
+        {"KP_5", SAPP_KEYCODE_KP_5},
+        {"KP_6", SAPP_KEYCODE_KP_6},
+        {"KP_7", SAPP_KEYCODE_KP_7},
+        {"KP_8", SAPP_KEYCODE_KP_8},
+        {"KP_9", SAPP_KEYCODE_KP_9},
+        {"KP_DECIMAL", SAPP_KEYCODE_KP_DECIMAL},
+        {"KP_DIVIDE", SAPP_KEYCODE_KP_DIVIDE},
+        {"KP_MULTIPLY", SAPP_KEYCODE_KP_MULTIPLY},
+        {"KP_SUBTRACT", SAPP_KEYCODE_KP_SUBTRACT},
+        {"KP_ADD", SAPP_KEYCODE_KP_ADD},
+        {"KP_ENTER", SAPP_KEYCODE_KP_ENTER},
+        {"KP_EQUAL", SAPP_KEYCODE_KP_EQUAL},
+        {"LEFT_SHIFT", SAPP_KEYCODE_LEFT_SHIFT},
+        {"LEFT_CONTROL", SAPP_KEYCODE_LEFT_CONTROL},
+        {"LEFT_ALT", SAPP_KEYCODE_LEFT_ALT},
+        {"LEFT_SUPER", SAPP_KEYCODE_LEFT_SUPER},
+        {"RIGHT_SHIFT", SAPP_KEYCODE_RIGHT_SHIFT},
+        {"RIGHT_CONTROL", SAPP_KEYCODE_RIGHT_CONTROL},
+        {"RIGHT_ALT", SAPP_KEYCODE_RIGHT_ALT},
+        {"RIGHT_SUPER", SAPP_KEYCODE_RIGHT_SUPER},
+        {"MENU", SAPP_KEYCODE_MENU}
     };
 
-    l_regintconsts(L, keycode_consts, sizeof(keycode_consts) / sizeof(keycode_consts[0]));
+    lutil_regintconsts(L, "keycode", keycode_consts, sizeof(keycode_consts) / sizeof(keycode_consts[0]));
 
-    static IntConst const mousebutton_consts[] = {
-        {"MOUSEBUTTON_LEFT", SAPP_MOUSEBUTTON_LEFT},
-        {"MOUSEBUTTON_RIGHT", SAPP_MOUSEBUTTON_RIGHT},
-        {"MOUSEBUTTON_MIDDLE", SAPP_MOUSEBUTTON_MIDDLE},
-        {"MOUSEBUTTON_INVALID", SAPP_MOUSEBUTTON_INVALID}
+    static lutil_IntConst const mousebutton_consts[] = {
+        {"LEFT", SAPP_MOUSEBUTTON_LEFT},
+        {"RIGHT", SAPP_MOUSEBUTTON_RIGHT},
+        {"MIDDLE", SAPP_MOUSEBUTTON_MIDDLE},
+        {"INVALID", SAPP_MOUSEBUTTON_INVALID}
     };
 
-    l_regintconsts(L, mousebutton_consts, sizeof(mousebutton_consts) / sizeof(mousebutton_consts[0]));
+    lutil_regintconsts(L, "mousebutton", mousebutton_consts, sizeof(mousebutton_consts) / sizeof(mousebutton_consts[0]));
 
-    static IntConst const modifier_consts[] = {
-        {"MODIFIER_SHIFT", SAPP_MODIFIER_SHIFT},
-        {"MODIFIER_CTRL", SAPP_MODIFIER_CTRL},
-        {"MODIFIER_ALT", SAPP_MODIFIER_ALT},
-        {"MODIFIER_SUPER", SAPP_MODIFIER_SUPER},
-        {"MODIFIER_LMB", SAPP_MODIFIER_LMB},
-        {"MODIFIER_RMB", SAPP_MODIFIER_RMB},
-        {"MODIFIER_MMB", SAPP_MODIFIER_MMB}
+    static lutil_IntConst const modifier_consts[] = {
+        {"SHIFT", SAPP_MODIFIER_SHIFT},
+        {"CTRL", SAPP_MODIFIER_CTRL},
+        {"ALT", SAPP_MODIFIER_ALT},
+        {"SUPER", SAPP_MODIFIER_SUPER},
+        {"LMB", SAPP_MODIFIER_LMB},
+        {"RMB", SAPP_MODIFIER_RMB},
+        {"MMB", SAPP_MODIFIER_MMB}
     };
 
-    l_regintconsts(L, modifier_consts, sizeof(modifier_consts) / sizeof(modifier_consts[0]));
+    lutil_regintconsts(L, "modifier", modifier_consts, sizeof(modifier_consts) / sizeof(modifier_consts[0]));
 
     return 1;
 }
@@ -954,28 +942,12 @@ static int l_panic(lua_State* const L) {
     exit(EXIT_FAILURE);
 }
 
-static int l_traceback(lua_State* const L) {
-    luaL_traceback(L, L, lua_tostring(L, -1), 1);
-    return 1;
-}
-
-static int l_pcall(lua_State* const L, int const nargs, int const nres) {
-    int const errndx = lua_gettop(L) - nargs;
-    lua_pushcfunction(L, l_traceback);
-    lua_insert(L, errndx);
-  
-    int const ret = lua_pcall(L, nargs, nres, errndx);
-    lua_remove(L, errndx);
-
-    return ret;
-}
-
 static void initcb(void* const user_data) {
     if (init_cb_ref != LUA_NOREF) {
         lua_State* const L = user_data;
         lua_rawgeti(L, LUA_REGISTRYINDEX, init_cb_ref);
         
-        if (l_pcall(L, 0, 0) != LUA_OK) {
+        if (lutil_pcall(L, 0, 0) != LUA_OK) {
 #ifndef NDEBUG
             fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
 #else
@@ -993,7 +965,7 @@ static void framecb(void* const user_data) {
     if (frame_cb_ref != LUA_NOREF) {
         lua_rawgeti(L, LUA_REGISTRYINDEX, frame_cb_ref);
         
-        if (l_pcall(L, 0, 0) != LUA_OK) {
+        if (lutil_pcall(L, 0, 0) != LUA_OK) {
 #ifndef NDEBUG
             fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
 #else
@@ -1012,7 +984,7 @@ static void cleanupcb(void* const user_data) {
         lua_State* const L = user_data;
         lua_rawgeti(L, LUA_REGISTRYINDEX, cleanup_cb_ref);
         
-        if (l_pcall(L, 0, 0) != LUA_OK) {
+        if (lutil_pcall(L, 0, 0) != LUA_OK) {
 #ifndef NDEBUG
             fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
 #else
@@ -1030,7 +1002,7 @@ static void eventcb(sapp_event const* const event, void* const user_data) {
         lua_rawgeti(L, LUA_REGISTRYINDEX, event_cb_ref);
         event_push(L)->event = *event;
 
-        if (l_pcall(L, 1, 0) != LUA_OK) {
+        if (lutil_pcall(L, 1, 0) != LUA_OK) {
 #ifndef NDEBUG
             fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
 #else
@@ -1048,7 +1020,7 @@ static void failcb(char const* error, void* const user_data) {
         lua_rawgeti(L, LUA_REGISTRYINDEX, fail_cb_ref);
         lua_pushstring(L, error);
         
-        if (l_pcall(L, 1, 0) != LUA_OK) {
+        if (lutil_pcall(L, 1, 0) != LUA_OK) {
 #ifndef NDEBUG
             fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
 #else
@@ -1109,7 +1081,7 @@ sapp_desc sokol_main(int argc, char* argv[]) {
             exit(EXIT_FAILURE);
         }
 
-        if (l_pcall(L, 0, 1) != LUA_OK) {
+        if (lutil_pcall(L, 0, 1) != LUA_OK) {
 #ifndef NDEBUG
             fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
 #else
@@ -1119,7 +1091,7 @@ sapp_desc sokol_main(int argc, char* argv[]) {
             exit(EXIT_FAILURE);
         }
 
-        if (l_pcall(L, 0, 1) != LUA_OK) {
+        if (lutil_pcall(L, 0, 1) != LUA_OK) {
 #ifndef NDEBUG
             fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
 #else
