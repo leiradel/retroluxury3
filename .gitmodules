@@ -10,3 +10,6 @@
 [submodule "src/3rdparty/libpng"]
 	path = src/3rdparty/libpng
 	url = https://github.com/glennrp/libpng.git
+[submodule "src/3rdparty/libjpeg-turbo"]
+	path = src/3rdparty/libjpeg-turbo
+	url = https://github.com/libjpeg-turbo/libjpeg-turbo.git
