@@ -406,11 +406,12 @@ static int l_max_path(lua_State* const L) {
 
 typedef struct {
     lua_State* const L;
+    int const handle_ref;
     int const callback_ref;
 }
 Userdata;
 
-static void callback(sfetch_response_t const* response) {
+static void callback(sfetch_response_t const* const response) {
     Userdata const* const ud = response->user_data;
     lua_State* const L = ud->L;
 
@@ -418,6 +419,10 @@ static void callback(sfetch_response_t const* response) {
     response_push(L)->response = *response;
 
     lua_call(L, 1, 0);
+
+    if (response->finished) {
+        luaL_unref(L, LUA_REGISTRYINDEX, ud->handle_ref);
+    }
 }
 
 static int l_send(lua_State* const L) {
@@ -439,24 +444,26 @@ static int l_send(lua_State* const L) {
     }
 
     request.callback = callback;
-    int callback_ref = LUA_NOREF;
 
     if (lua_getfield(L, 1, "callback") == LUA_TNIL) {
         return luaL_error(L, "missing required field 'callback'");
     }
 
     luaL_checktype(L, -1, LUA_TFUNCTION);
-    callback_ref = luaL_ref(L, LUA_REGISTRYINDEX);
-
-    Userdata ud = {L, callback_ref};
-    request.user_data_ptr = &ud;
-    request.user_data_size = sizeof(ud);
+    int const callback_ref = luaL_ref(L, LUA_REGISTRYINDEX);
 
     if (lua_getfield(L, 1, "chunk_size") != LUA_TNIL) {
         request.chunk_size = luaL_checkinteger(L, -1);
     }
 
     Handle* const self = handle_push(L, request.chunk_size);
+
+    lua_pushvalue(L, -1);
+    int const handle_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+
+    Userdata ud = {L, handle_ref, callback_ref};
+    request.user_data_ptr = &ud;
+    request.user_data_size = sizeof(ud);
 
     request.buffer_ptr = self->buffer;
     request.buffer_size = request.chunk_size;
