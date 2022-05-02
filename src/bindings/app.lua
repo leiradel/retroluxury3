@@ -11,11 +11,15 @@ fetch.send {
     callback = function(response)
         if response.fetched then
             main[#main + 1] = response.buffer
-        elseif response.failed then
-            error('' .. response.error_code)
         end
 
-        done = response.finished
+        if response.finished then
+            if response.failed or response.cancelled then
+                error('could not read main.lua: ' .. fetch.error[response.error_code])
+            else
+                done = true
+            end
+        end
     end
 }
 
