@@ -33,7 +33,8 @@ ENGINE_OBJS = \
 	src/bindings/djb2.o \
 	src/bindings/fetch.o \
 	src/bindings/image.o \
-	src/bindings/lutil.o
+	src/bindings/lutil.o \
+	src/bindings/vector.o
 
 ENGINE_LUA = \
 	src/bindings/app.lua.h \
