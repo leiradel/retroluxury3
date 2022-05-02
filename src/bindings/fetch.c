@@ -7,6 +7,7 @@
 #include <sokol_fetch.h>
 
 #include "djb2.h"
+#include "lutil.h"
 
 #include "fetch.lua.h"
 
@@ -348,27 +349,6 @@ static Response* response_push(lua_State* const L) {
 ########  #######  ##     ##  #######  ##        ######## ##    ## #######  ######   #######  ##    ##  #######  ######## ####### ##       ########    ##     ######  ##     ## 
 */
 
-typedef struct {
-    char const* name;
-    lua_Integer value;
-}
-IntConst;
-
-static void l_regintconsts(lua_State* const L, char const* const name, IntConst const* const consts, size_t const count) {
-    lua_createtable(L, count, 0);
-
-    for (size_t i = 0; i < count; i++) {
-        lua_pushstring(L, consts[i].name);
-        lua_pushinteger(L, consts[i].value);
-        lua_rawset(L, -3);
-
-        lua_pushstring(L, consts[i].name);
-        lua_rawseti(L, -2, consts[i].value);
-    }
-
-    lua_setfield(L, -2, name);
-}
-
 static int l_setup(lua_State* const L) {
     sfetch_desc_t desc;
     memset(&desc, 0, sizeof(desc));
@@ -488,22 +468,6 @@ static int l_dowork(lua_State* const L) {
     return 0;
 }
 
-static int l_traceback(lua_State* const L) {
-    luaL_traceback(L, L, lua_tostring(L, -1), 1);
-    return 1;
-}
-
-static int l_pcall(lua_State* const L, int const nargs, int const nres) {
-    int const errndx = lua_gettop(L) - nargs;
-    lua_pushcfunction(L, l_traceback);
-    lua_insert(L, errndx);
-  
-    int const ret = lua_pcall(L, nargs, nres, errndx);
-    lua_remove(L, errndx);
-
-    return ret;
-}
-
 LUAMOD_API int luaopen_sokol_fetch(lua_State* const L) {
     static luaL_Reg const functions[] = {
         {"setup", l_setup},
@@ -519,7 +483,7 @@ LUAMOD_API int luaopen_sokol_fetch(lua_State* const L) {
 
     luaL_newlib(L, functions);
 
-    static IntConst const error_consts[] = {
+    static lutil_IntConst const error_consts[] = {
         {"NO_ERROR", SFETCH_ERROR_NO_ERROR},
         {"FILE_NOT_FOUND", SFETCH_ERROR_FILE_NOT_FOUND},
         {"NO_BUFFER", SFETCH_ERROR_NO_BUFFER},
@@ -529,7 +493,7 @@ LUAMOD_API int luaopen_sokol_fetch(lua_State* const L) {
         {"CANCELLED", SFETCH_ERROR_CANCELLED}
     };
 
-    l_regintconsts(L, "error", error_consts, sizeof(error_consts) / sizeof(error_consts[0]));
+    lutil_regintconsts(L, "error", error_consts, sizeof(error_consts) / sizeof(error_consts[0]));
 
     {
         if (luaL_loadbufferx(L, fetch_lua, sizeof(fetch_lua) / sizeof(fetch_lua[0]), "fetch.lua", "t") != LUA_OK) {
@@ -540,7 +504,7 @@ LUAMOD_API int luaopen_sokol_fetch(lua_State* const L) {
 #endif
         }
 
-        if (l_pcall(L, 0, 1) != LUA_OK) {
+        if (lutil_pcall(L, 0, 1) != LUA_OK) {
 #ifndef NDEBUG
             fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
 #else
@@ -550,7 +514,7 @@ LUAMOD_API int luaopen_sokol_fetch(lua_State* const L) {
 
         lua_pushvalue(L, -2);
 
-        if (l_pcall(L, 1, 0) != LUA_OK) {
+        if (lutil_pcall(L, 1, 0) != LUA_OK) {
 #ifndef NDEBUG
             fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
 #else

@@ -26,7 +26,9 @@ endif
 ENGINE_OBJS = \
 	src/bindings/app.o \
 	src/bindings/djb2.o \
-	src/bindings/fetch.o
+	src/bindings/fetch.o \
+	src/bindings/image.o \
+	src/bindings/lutil.o
 
 ENGINE_LUA = \
 	src/bindings/app.lua.h \
