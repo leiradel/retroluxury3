@@ -495,32 +495,33 @@ LUAMOD_API int luaopen_sokol_fetch(lua_State* const L) {
 
     lutil_regintconsts(L, "error", error_consts, sizeof(error_consts) / sizeof(error_consts[0]));
 
-    {
-        if (luaL_loadbufferx(L, fetch_lua, sizeof(fetch_lua) / sizeof(fetch_lua[0]), "fetch.lua", "t") != LUA_OK) {
+    // Load the script that enriches the module
+    if (luaL_loadbufferx(L, fetch_lua, sizeof(fetch_lua) / sizeof(fetch_lua[0]), "fetch.lua", "t") != LUA_OK) {
 #ifndef NDEBUG
-            fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
+        fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
 #else
-            fprintf(stderr, "%s\n", lua_tostring(L, -1));
+        fprintf(stderr, "%s\n", lua_tostring(L, -1));
 #endif
-        }
+    }
 
-        if (lutil_pcall(L, 0, 1) != LUA_OK) {
+    // Call the compiled chunk, it returns the function that will enrich the module
+    if (lutil_pcall(L, 0, 1) != LUA_OK) {
 #ifndef NDEBUG
-            fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
+        fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
 #else
-            fprintf(stderr, "%s\n", lua_tostring(L, -1));
+        fprintf(stderr, "%s\n", lua_tostring(L, -1));
 #endif
-        }
+    }
 
-        lua_pushvalue(L, -2);
+    // Push the module and call the script
+    lua_pushvalue(L, -2);
 
-        if (lutil_pcall(L, 1, 0) != LUA_OK) {
+    if (lutil_pcall(L, 1, 0) != LUA_OK) {
 #ifndef NDEBUG
-            fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
+        fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
 #else
-            fprintf(stderr, "%s\n", lua_tostring(L, -1));
+        fprintf(stderr, "%s\n", lua_tostring(L, -1));
 #endif
-        }
     }
 
     return 1;
