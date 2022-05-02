@@ -903,10 +903,13 @@ Module;
 static int l_searcher(lua_State* const L) {
     LUAMOD_API int luaopen_sapp(lua_State* L);
     LUAMOD_API int luaopen_sokol_fetch(lua_State* const L);
+    LUAMOD_API int luaopen_rl3_image(lua_State* const L);
+
 
     static Module const modules[] = {
         MODC("sokol.app", luaopen_sokol_app),
         MODC("sokol.fetch", luaopen_sokol_fetch),
+        MODC("rl3.image", luaopen_rl3_image),
     };
 
     char const* const modname = lua_tostring(L, 1);
