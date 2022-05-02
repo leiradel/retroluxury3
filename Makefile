@@ -2,8 +2,8 @@ CC ?= gcc
 CFLAGS = -std=c99
 
 DEFINES += -DMAKE_LIB # Only make the Lua libraries in onelua.c
-DEFINES += -DNO_GETENV -DNO_PUTENV
-DEFINES += -DPNG_NO_CONSOLE_IO -DPNG_NO_STDIO
+DEFINES += -DNO_GETENV -DNO_PUTENV # No environment access in libjpeg-turbo
+DEFINES += -DPNG_NO_CONSOLE_IO -DPNG_NO_STDIO # No console output and stdio support in libpng
 
 INCLUDES += -Isrc/generated
 INCLUDES += -Isrc/3rdparty/lua
