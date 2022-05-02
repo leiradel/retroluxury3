@@ -29,7 +29,8 @@ ENGINE_OBJS = \
 	src/bindings/fetch.o
 
 ENGINE_LUA = \
-	src/bindings/app.lua.h
+	src/bindings/app.lua.h \
+	src/bindings/fetch.lua.h
 
 LUA_OBJS = \
 	src/3rdparty/lua/onelua.o
@@ -44,6 +45,8 @@ main: $(RETROLUXURY3_OBJS) $(3RDPARTY_OBJS)
 	@$(CC) -o "$@" $+ $(LIBS)
 
 src/bindings/app.o: src/bindings/app.lua.h
+
+src/bindings/fetch.o: src/bindings/fetch.lua.h
 
 src/3rdparty/lua/onelua.o: src/3rdparty/lua/onelua.c
 	@echo "Compiling: $@"

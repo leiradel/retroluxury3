@@ -8,6 +8,8 @@
 
 #include "djb2.h"
 
+#include "fetch.lua.h"
+
 /*
  ######  ######## ######## ########  ######  ##     ##         ########  ########  ######   ######          ######## 
 ##    ## ##       ##          ##    ##    ## ##     ##         ##     ## ##       ##    ## ##    ##            ##    
@@ -478,6 +480,22 @@ static int l_dowork(lua_State* const L) {
     return 0;
 }
 
+static int l_traceback(lua_State* const L) {
+    luaL_traceback(L, L, lua_tostring(L, -1), 1);
+    return 1;
+}
+
+static int l_pcall(lua_State* const L, int const nargs, int const nres) {
+    int const errndx = lua_gettop(L) - nargs;
+    lua_pushcfunction(L, l_traceback);
+    lua_insert(L, errndx);
+  
+    int const ret = lua_pcall(L, nargs, nres, errndx);
+    lua_remove(L, errndx);
+
+    return ret;
+}
+
 LUAMOD_API int luaopen_sokol_fetch(lua_State* const L) {
     static luaL_Reg const functions[] = {
         {"setup", l_setup},
@@ -504,6 +522,34 @@ LUAMOD_API int luaopen_sokol_fetch(lua_State* const L) {
     };
 
     l_regintconsts(L, error_consts, sizeof(error_consts) / sizeof(error_consts[0]));
+
+    {
+        if (luaL_loadbufferx(L, fetch_lua, sizeof(fetch_lua) / sizeof(fetch_lua[0]), "fetch.lua", "t") != LUA_OK) {
+#ifndef NDEBUG
+            fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
+#else
+            fprintf(stderr, "%s\n", lua_tostring(L, -1));
+#endif
+        }
+
+        if (l_pcall(L, 0, 1) != LUA_OK) {
+#ifndef NDEBUG
+            fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
+#else
+            fprintf(stderr, "%s\n", lua_tostring(L, -1));
+#endif
+        }
+
+        lua_pushvalue(L, -2);
+
+        if (l_pcall(L, 1, 0) != LUA_OK) {
+#ifndef NDEBUG
+            fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
+#else
+            fprintf(stderr, "%s\n", lua_tostring(L, -1));
+#endif
+        }
+    }
 
     return 1;
 }
