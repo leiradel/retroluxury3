@@ -454,6 +454,28 @@ static Desc* desc_push(lua_State* const L) {
  ######   #######  ##    ##  #######  ######## ####### ##     ## ##        ##        
 */
 
+static void fillicondesc(lua_State* const L, int const ndx, sapp_icon_desc* const icon) {
+    for (lua_Integer i = 1; i < SAPP_MAX_ICONIMAGES; i++) {
+        lua_geti(L, ndx, i);
+
+        if (lua_isnil(L, -1)) {
+            lua_pop(L, 1);
+            break;
+        }
+
+        lua_geti(L, -1, 1);
+        icon->images[i - 1].width = luaL_checkinteger(L, -1);
+
+        lua_geti(L, -2, 2);
+        icon->images[i - 1].height = luaL_checkinteger(L, -1);
+
+        lua_geti(L, -3, 3);
+        icon->images[i - 1].pixels.ptr = luaL_checklstring(L, -1, &icon->images[i - 1].pixels.size);
+
+        lua_pop(L, 4);
+    }
+}
+
 static int l_isvalid(lua_State* L) {
     bool const isvalid = sapp_isvalid();
     lua_pushboolean(L, isvalid);
@@ -611,7 +633,13 @@ static int l_set_window_title(lua_State* L) {
 }
 
 static int l_set_icon(lua_State* L) {
-    return luaL_error(L, "sapp_set_icon not implemented");
+    sapp_icon_desc icon;
+    memset(&icon, 0, sizeof(icon));
+
+    fillicondesc(L, 1, &icon);
+    sapp_set_icon(&icon);
+
+    return 0;
 }
 
 static int l_get_num_dropped_files(lua_State* L) {
@@ -1127,24 +1155,7 @@ static int lua_main(lua_State* const L) {
     }
 
     if (lua_getfield(L, 2, "icon") != LUA_TNIL) {
-        for (lua_Integer i = 1; i < SAPP_MAX_ICONIMAGES; i++) {
-            lua_geti(L, -1, i);
-
-            if (lua_isnil(L, -1)) {
-                break;
-            }
-
-            lua_getfield(L, -1, "width");
-            desc->icon.images[i - 1].width = luaL_checkinteger(L, -1);
-
-            lua_getfield(L, -2, "height");
-            desc->icon.images[i - 1].height = luaL_checkinteger(L, -1);
-
-            lua_getfield(L, -3, "pixels");
-            desc->icon.images[i - 1].pixels.ptr = luaL_checklstring(L, -1, &desc->icon.images[i - 1].pixels.size);
-
-            lua_pop(L, 4);
-        }
+        fillicondesc(L, -1, &desc->icon);
     }
     else {
         desc->icon.sokol_default = true;
