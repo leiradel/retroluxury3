@@ -1032,6 +1032,168 @@ static void failcb(char const* error, void* const user_data) {
     }
 }
 
+static int lua_main(lua_State* const L) {
+    sapp_desc* const desc = lua_touserdata(L, 1);
+    memset(desc, 0, sizeof(*desc));
+
+    desc->user_data = L;
+    desc->init_userdata_cb = initcb;
+    desc->frame_userdata_cb = framecb;
+    desc->cleanup_userdata_cb = cleanupcb;
+    desc->event_userdata_cb = eventcb;
+    desc->fail_userdata_cb = failcb;
+
+    if (lua_getfield(L, 2, "init_cb") != LUA_TNIL) {
+        init_cb_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+    }
+
+    if (lua_getfield(L, 2, "frame_cb") != LUA_TNIL) {
+        frame_cb_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+    }
+
+    if (lua_getfield(L, 2, "cleanup_cb") != LUA_TNIL) {
+        cleanup_cb_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+    }
+
+    if (lua_getfield(L, 2, "event_cb") != LUA_TNIL) {
+        event_cb_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+    }
+
+    if (lua_getfield(L, 2, "fail_cb") != LUA_TNIL) {
+        fail_cb_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+    }
+
+    if (lua_getfield(L, 2, "width") != LUA_TNIL) {
+        desc->width = luaL_checkinteger(L, -1);
+    }
+
+    if (lua_getfield(L, 2, "height") != LUA_TNIL) {
+        desc->height = luaL_checkinteger(L, -1);
+    }
+
+    if (lua_getfield(L, 2, "sample_count") != LUA_TNIL) {
+        desc->sample_count = luaL_checkinteger(L, -1);
+    }
+
+    if (lua_getfield(L, 2, "swap_interval") != LUA_TNIL) {
+        desc->swap_interval = luaL_checkinteger(L, -1);
+    }
+
+    if (lua_getfield(L, 2, "high_dpi") != LUA_TNIL) {
+        desc->high_dpi = lua_toboolean(L, -1);
+    }
+
+    if (lua_getfield(L, 2, "fullscreen") != LUA_TNIL) {
+        desc->fullscreen = lua_toboolean(L, -1);
+    }
+
+    if (lua_getfield(L, 2, "alpha") != LUA_TNIL) {
+        desc->alpha = lua_toboolean(L, -1);
+    }
+
+    if (lua_getfield(L, 2, "window_title") != LUA_TNIL) {
+        size_t length = 0;
+        char const* const title = luaL_checklstring(L, -1, &length);
+        window_title = malloc(length + 1);
+        strcpy(window_title, title);
+        desc->window_title = window_title;
+    }
+
+    if (lua_getfield(L, 2, "user_cursor") != LUA_TNIL) {
+        desc->user_cursor = lua_toboolean(L, -1);
+    }
+
+    if (lua_getfield(L, 2, "enable_clipboard") != LUA_TNIL) {
+        desc->enable_clipboard = lua_toboolean(L, -1);
+    }
+
+    if (lua_getfield(L, 2, "clipboard_size") != LUA_TNIL) {
+        desc->clipboard_size = luaL_checkinteger(L, -1);
+    }
+
+    if (lua_getfield(L, 2, "enable_dragndrop") != LUA_TNIL) {
+        desc->enable_clipboard = lua_toboolean(L, -1);
+    }
+
+    if (lua_getfield(L, 2, "max_dropped_files") != LUA_TNIL) {
+        desc->max_dropped_files = luaL_checkinteger(L, -1);
+    }
+
+    if (lua_getfield(L, 2, "max_dropped_file_path_length") != LUA_TNIL) {
+        desc->max_dropped_file_path_length = luaL_checkinteger(L, -1);
+    }
+
+    if (lua_getfield(L, 2, "icon") != LUA_TNIL) {
+        for (lua_Integer i = 1; i < SAPP_MAX_ICONIMAGES; i++) {
+            lua_geti(L, -1, i);
+
+            if (lua_isnil(L, -1)) {
+                break;
+            }
+
+            lua_getfield(L, -1, "width");
+            desc->icon.images[i - 1].width = luaL_checkinteger(L, -1);
+
+            lua_getfield(L, -2, "height");
+            desc->icon.images[i - 1].height = luaL_checkinteger(L, -1);
+
+            lua_getfield(L, -3, "pixels");
+            desc->icon.images[i - 1].pixels.ptr = luaL_checklstring(L, -1, &desc->icon.images[i - 1].pixels.size);
+
+            lua_pop(L, 4);
+        }
+    }
+    else {
+        desc->icon.sokol_default = true;
+    }
+
+    if (lua_getfield(L, 2, "gl_force_gles2") != LUA_TNIL) {
+        desc->gl_force_gles2 = lua_toboolean(L, -1);
+    }
+
+    if (lua_getfield(L, 2, "win32_console_utf8") != LUA_TNIL) {
+        desc->width = luaL_checkinteger(L, -1);
+    }
+
+    if (lua_getfield(L, 2, "win32_console_create") != LUA_TNIL) {
+        desc->win32_console_create = lua_toboolean(L, -1);
+    }
+
+    if (lua_getfield(L, 2, "win32_console_attach") != LUA_TNIL) {
+        desc->win32_console_attach = lua_toboolean(L, -1);
+    }
+
+    if (lua_getfield(L, 2, "html5_canvas_name") != LUA_TNIL) {
+        size_t length = 0;
+        char const* const name = luaL_checklstring(L, -1, &length);
+        html5_canvas_name = malloc(length + 1);
+        strcpy(html5_canvas_name, name);
+        desc->html5_canvas_name = html5_canvas_name;
+    }
+
+    if (lua_getfield(L, 2, "html5_canvas_resize") != LUA_TNIL) {
+        desc->html5_canvas_resize = lua_toboolean(L, -1);
+    }
+
+    if (lua_getfield(L, 2, "html5_preserve_drawing_buffer") != LUA_TNIL) {
+        desc->html5_preserve_drawing_buffer = lua_toboolean(L, -1);
+    }
+
+    if (lua_getfield(L, 2, "html5_premultiplied_alpha") != LUA_TNIL) {
+        desc->html5_premultiplied_alpha = lua_toboolean(L, -1);
+    }
+
+    if (lua_getfield(L, 2, "html5_ask_leave_site") != LUA_TNIL) {
+        desc->html5_ask_leave_site = lua_toboolean(L, -1);
+    }
+
+    if (lua_getfield(L, 2, "ios_keyboard_resizes_canvas") != LUA_TNIL) {
+        desc->ios_keyboard_resizes_canvas = lua_toboolean(L, -1);
+    }
+
+    return 0;
+}
+
 sapp_desc sokol_main(int argc, char* argv[]) {
     (void)argc;
     (void)argv;
@@ -1039,214 +1201,82 @@ sapp_desc sokol_main(int argc, char* argv[]) {
     lua_State* const L = luaL_newstate();
     lua_atpanic(L, l_panic);
 
-    {
-        static luaL_Reg const libs[] = {
-            {LUA_GNAME, luaopen_base},
-            {LUA_LOADLIBNAME, luaopen_package},
-            {LUA_COLIBNAME, luaopen_coroutine},
-            {LUA_TABLIBNAME, luaopen_table},
-            {LUA_IOLIBNAME, luaopen_io},
-            {LUA_OSLIBNAME, luaopen_os},
-            {LUA_STRLIBNAME, luaopen_string},
-            {LUA_MATHLIBNAME, luaopen_math},
-            {LUA_UTF8LIBNAME, luaopen_utf8},
-            {LUA_DBLIBNAME, luaopen_debug}
-        };
+    static luaL_Reg const libs[] = {
+        {LUA_GNAME, luaopen_base},
+        {LUA_LOADLIBNAME, luaopen_package},
+        {LUA_COLIBNAME, luaopen_coroutine},
+        {LUA_TABLIBNAME, luaopen_table},
+        {LUA_IOLIBNAME, luaopen_io},
+        {LUA_OSLIBNAME, luaopen_os},
+        {LUA_STRLIBNAME, luaopen_string},
+        {LUA_MATHLIBNAME, luaopen_math},
+        {LUA_UTF8LIBNAME, luaopen_utf8},
+        {LUA_DBLIBNAME, luaopen_debug}
+    };
 
-        for (size_t i = 0; i < sizeof(libs) / sizeof(libs[0]); i++) {
-            luaL_requiref(L, libs[i].name, libs[i].func, 1);
-            lua_pop(L, 1);
-        }
+    for (size_t i = 0; i < sizeof(libs) / sizeof(libs[0]); i++) {
+        luaL_requiref(L, libs[i].name, libs[i].func, 1);
+        lua_pop(L, 1);
     }
 
-    {
-        lua_getglobal(L, "package");
-        lua_getfield(L, -1, "searchers");
-        size_t const length = lua_rawlen(L, -1);
+    lua_getglobal(L, "package");
+    lua_getfield(L, -1, "searchers");
+    size_t const length = lua_rawlen(L, -1);
 
-        lua_pushcfunction(L, l_searcher);
-        lua_rawseti(L, -2, length + 1);
+    lua_pushcfunction(L, l_searcher);
+    lua_rawseti(L, -2, length + 1);
 
-        lua_pop(L, 2);
-    }
+    lua_pop(L, 2);
 
-    {
-        if (luaL_loadbufferx(L, app_lua, sizeof(app_lua) / sizeof(app_lua[0]), "bootstrap.lua", "t") != LUA_OK) {
-#ifndef NDEBUG
-            fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
-#else
-            fprintf(stderr, "%s\n", lua_tostring(L, -1));
-#endif
+    // Push the main Lua function
+    lua_pushcfunction(L, lua_main);
 
-            exit(EXIT_FAILURE);
-        }
-
-        if (lutil_pcall(L, 0, 1) != LUA_OK) {
-#ifndef NDEBUG
-            fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
-#else
-            fprintf(stderr, "%s\n", lua_tostring(L, -1));
-#endif
-
-            exit(EXIT_FAILURE);
-        }
-
-        if (lutil_pcall(L, 0, 1) != LUA_OK) {
-#ifndef NDEBUG
-            fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
-#else
-            fprintf(stderr, "%s\n", lua_tostring(L, -1));
-#endif
-
-            exit(EXIT_FAILURE);
-        }
-    }
-
+    // Push a sapp_desc as the first argument
     sapp_desc desc;
-    memset(&desc, 0, sizeof(desc));
+    lua_pushlightuserdata(L, &desc);
 
-    {
-        desc.user_data = L;
-        desc.init_userdata_cb = initcb;
-        desc.frame_userdata_cb = framecb;
-        desc.cleanup_userdata_cb = cleanupcb;
-        desc.event_userdata_cb = eventcb;
-        desc.fail_userdata_cb = failcb;
+    // Load the bootstrap script
+    if (luaL_loadbufferx(L, app_lua, sizeof(app_lua) / sizeof(app_lua[0]), "bootstrap.lua", "t") != LUA_OK) {
+#ifndef NDEBUG
+        fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
+#else
+        fprintf(stderr, "%s\n", lua_tostring(L, -1));
+#endif
 
-        if (lua_getfield(L, 1, "init_cb") != LUA_TNIL) {
-            luaL_checktype(L, -1, LUA_TFUNCTION);
-            init_cb_ref = luaL_ref(L, LUA_REGISTRYINDEX);
-        }
+        exit(EXIT_FAILURE);
+    }
 
-        if (lua_getfield(L, 1, "frame_cb") != LUA_TNIL) {
-            luaL_checktype(L, -1, LUA_TFUNCTION);
-            frame_cb_ref = luaL_ref(L, LUA_REGISTRYINDEX);
-        }
+    // Call the compiled script, it will return the main.lua script as a compiled chunk
+    if (lutil_pcall(L, 0, 1) != LUA_OK) {
+#ifndef NDEBUG
+        fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
+#else
+        fprintf(stderr, "%s\n", lua_tostring(L, -1));
+#endif
 
-        if (lua_getfield(L, 1, "cleanup_cb") != LUA_TNIL) {
-            luaL_checktype(L, -1, LUA_TFUNCTION);
-            cleanup_cb_ref = luaL_ref(L, LUA_REGISTRYINDEX);
-        }
+        exit(EXIT_FAILURE);
+    }
 
-        if (lua_getfield(L, 1, "event_cb") != LUA_TNIL) {
-            luaL_checktype(L, -1, LUA_TFUNCTION);
-            event_cb_ref = luaL_ref(L, LUA_REGISTRYINDEX);
-        }
+    // Call the compiled main.lua, it will return a table with the sapp_desc fields
+    if (lutil_pcall(L, 0, 1) != LUA_OK) {
+#ifndef NDEBUG
+        fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
+#else
+        fprintf(stderr, "%s\n", lua_tostring(L, -1));
+#endif
 
-        if (lua_getfield(L, 1, "fail_cb") != LUA_TNIL) {
-            luaL_checktype(L, -1, LUA_TFUNCTION);
-            fail_cb_ref = luaL_ref(L, LUA_REGISTRYINDEX);
-        }
+        exit(EXIT_FAILURE);
+    }
 
-        if (lua_getfield(L, 1, "width") != LUA_TNIL) {
-            desc.width = luaL_checkinteger(L, -1);
-        }
+    // Call lua_main with the sapp_desc pointer and the table
+    if (lutil_pcall(L, 2, 0) != LUA_OK) {
+#ifndef NDEBUG
+        fprintf(stderr, "%s:%u: %s\n", __FILE__, __LINE__, lua_tostring(L, -1));
+#else
+        fprintf(stderr, "%s\n", lua_tostring(L, -1));
+#endif
 
-        if (lua_getfield(L, 1, "height") != LUA_TNIL) {
-            desc.height = luaL_checkinteger(L, -1);
-        }
-
-        if (lua_getfield(L, 1, "sample_count") != LUA_TNIL) {
-            desc.sample_count = luaL_checkinteger(L, -1);
-        }
-
-        if (lua_getfield(L, 1, "swap_interval") != LUA_TNIL) {
-            desc.swap_interval = luaL_checkinteger(L, -1);
-        }
-
-        if (lua_getfield(L, 1, "high_dpi") != LUA_TNIL) {
-            desc.high_dpi = lua_toboolean(L, -1);
-        }
-
-        if (lua_getfield(L, 1, "fullscreen") != LUA_TNIL) {
-            desc.fullscreen = lua_toboolean(L, -1);
-        }
-
-        if (lua_getfield(L, 1, "alpha") != LUA_TNIL) {
-            desc.alpha = lua_toboolean(L, -1);
-        }
-
-        if (lua_getfield(L, 1, "window_title") != LUA_TNIL) {
-            size_t length = 0;
-            char const* const title = luaL_checklstring(L, -1, &length);
-            window_title = malloc(length + 1);
-            strcpy(window_title, title);
-            desc.window_title = title;
-        }
-
-        if (lua_getfield(L, 1, "user_cursor") != LUA_TNIL) {
-            desc.user_cursor = lua_toboolean(L, -1);
-        }
-
-        if (lua_getfield(L, 1, "enable_clipboard") != LUA_TNIL) {
-            desc.enable_clipboard = lua_toboolean(L, -1);
-        }
-
-        if (lua_getfield(L, 1, "clipboard_size") != LUA_TNIL) {
-            desc.clipboard_size = luaL_checkinteger(L, -1);
-        }
-
-        if (lua_getfield(L, 1, "enable_dragndrop") != LUA_TNIL) {
-            desc.enable_clipboard = lua_toboolean(L, -1);
-        }
-
-        if (lua_getfield(L, 1, "max_dropped_files") != LUA_TNIL) {
-            desc.max_dropped_files = luaL_checkinteger(L, -1);
-        }
-
-        if (lua_getfield(L, 1, "max_dropped_file_path_length") != LUA_TNIL) {
-            desc.max_dropped_file_path_length = luaL_checkinteger(L, -1);
-        }
-
-        if (lua_getfield(L, 1, "icon") != LUA_TNIL) {
-            // TODO
-        }
-
-        if (lua_getfield(L, 1, "gl_force_gles2") != LUA_TNIL) {
-            desc.gl_force_gles2 = lua_toboolean(L, -1);
-        }
-
-        if (lua_getfield(L, 1, "win32_console_utf8") != LUA_TNIL) {
-            desc.width = luaL_checkinteger(L, -1);
-        }
-
-        if (lua_getfield(L, 1, "win32_console_create") != LUA_TNIL) {
-            desc.win32_console_create = lua_toboolean(L, -1);
-        }
-
-        if (lua_getfield(L, 1, "win32_console_attach") != LUA_TNIL) {
-            desc.win32_console_attach = lua_toboolean(L, -1);
-        }
-
-        if (lua_getfield(L, 1, "win32_console_attach") != LUA_TNIL) {
-            size_t length = 0;
-            char const* const name = luaL_checklstring(L, -1, &length);
-            html5_canvas_name = malloc(length + 1);
-            strcpy(html5_canvas_name, name);
-            desc.html5_canvas_name = html5_canvas_name;
-        }
-
-        if (lua_getfield(L, 1, "html5_canvas_resize") != LUA_TNIL) {
-            desc.html5_canvas_resize = lua_toboolean(L, -1);
-        }
-
-        if (lua_getfield(L, 1, "html5_preserve_drawing_buffer") != LUA_TNIL) {
-            desc.html5_preserve_drawing_buffer = lua_toboolean(L, -1);
-        }
-
-        if (lua_getfield(L, 1, "html5_premultiplied_alpha") != LUA_TNIL) {
-            desc.html5_premultiplied_alpha = lua_toboolean(L, -1);
-        }
-
-        if (lua_getfield(L, 1, "html5_ask_leave_site") != LUA_TNIL) {
-            desc.html5_ask_leave_site = lua_toboolean(L, -1);
-        }
-
-        if (lua_getfield(L, 1, "ios_keyboard_resizes_canvas") != LUA_TNIL) {
-            desc.ios_keyboard_resizes_canvas = lua_toboolean(L, -1);
-        }
-
-        lua_settop(L, 0);
+        exit(EXIT_FAILURE);
     }
 
     return desc;
