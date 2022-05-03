@@ -42,21 +42,19 @@ static Event* event_check(lua_State* const L, int const ndx) {
     return luaL_checkudata(L, ndx, SAPP_EVENT_MT);
 }
 
-static int event_touches_iterator(lua_State* const L) {
+static int event_touches(lua_State* const L) {
     Event const* const self = event_check(L, 1);
-    lua_Integer const index = luaL_checkinteger(L, 2);
+    lua_Integer const index = luaL_checkinteger(L, 2) - 1;
 
-    if (index < self->event.num_touches) {
-        lua_pushinteger(L, index + 1);
+    if (index >= 0 && index < self->event.num_touches) {
         lua_pushinteger(L, self->event.touches[index].identifier);
         lua_pushnumber(L, self->event.touches[index].pos_x);
         lua_pushnumber(L, self->event.touches[index].pos_y);
         lua_pushboolean(L, self->event.touches[index].changed);
-        return 5;
+        return 4;
     }
 
-    lua_pushnil(L);
-    return 1;
+    return 0;
 }
 
 static int event_index(lua_State* const L) {
@@ -117,11 +115,13 @@ static int event_index(lua_State* const L) {
             lua_pushnumber(L, self->event.scroll_y);
             return 1;
 
+        case DJB2HASH_C(0x444b846f): /* num_touches */
+            lua_pushinteger(L, self->event.num_touches);
+            return 1;
+
         case DJB2HASH_C(0xf08d0700): /* touches */
-            lua_pushcfunction(L, event_touches_iterator);
-            lua_pushvalue(L, 1);
-            lua_pushinteger(L, 0);
-            return 3;
+            lua_pushcfunction(L, event_touches);
+            return 1;
 
         case DJB2HASH_C(0x290c545c): /* window_width */
             lua_pushinteger(L, self->event.window_width);
