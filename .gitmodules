@@ -13,3 +13,6 @@
 [submodule "src/3rdparty/libjpeg-turbo"]
 	path = src/3rdparty/libjpeg-turbo
 	url = https://github.com/libjpeg-turbo/libjpeg-turbo.git
+[submodule "src/3rdparty/sokol_gp"]
+	path = src/3rdparty/sokol_gp
+	url = https://github.com/edubart/sokol_gp.git
