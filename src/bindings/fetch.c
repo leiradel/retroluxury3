@@ -135,49 +135,6 @@ static int l_handle_continue(lua_State* const L) {
     return 0;
 }
 
-static int handle_index(lua_State* const L) {
-    handle_check(L, 1);
-    char const* const key = luaL_checkstring(L, 2);
-    djb2_hash const hash = djb2(key);
-
-    switch (hash) {
-        case DJB2HASH_C(0x108d55b5): /* valid */
-            lua_pushcfunction(L, l_handle_valid);
-            return 1;
-
-        case DJB2HASH_C(0xf5e7082b): /* cancel */
-            lua_pushcfunction(L, l_handle_cancel);
-            return 1;
-
-        case DJB2HASH_C(0x1020ea43): /* pause */
-            lua_pushcfunction(L, l_handle_pause);
-            return 1;
-
-        case DJB2HASH_C(0x42aefb8a): /* continue */
-            lua_pushcfunction(L, l_handle_continue);
-            return 1;
-    }
-
-    return luaL_error(L, "unknown field %s in %s", key, SFETCH_HANDLE_MT);
-}
-
-#ifndef NDEBUG
-static int handle_newindex(lua_State* const L) {
-    handle_check(L, 1);
-    char const* const key = luaL_checkstring(L, 2);
-    djb2_hash const hash = djb2(key);
-
-    switch (hash) {
-        case DJB2HASH_C(0x7ba46c86): /* max_requests */
-        case DJB2HASH_C(0xd4a870e0): /* num_channels */
-        case DJB2HASH_C(0xa5aabe67): /* num_lanes */
-            return luaL_error(L, "cannot change field %s in %s, object is read-only", key, SFETCH_HANDLE_MT);
-    }
-
-    return luaL_error(L, "unknown field %s in %s", key, SFETCH_HANDLE_MT);
-}
-#endif
-
 static int handle_eq(lua_State* const L) {
     Handle const* const self = handle_check(L, 1);
     Handle const* const other = handle_check(L, 2);
@@ -191,13 +148,16 @@ static Handle* handle_push(lua_State* const L, size_t const buffer_size) {
     Handle* const self = lua_newuserdata(L, sizeof(*self) + buffer_size);
 
     if (luaL_newmetatable(L, SFETCH_HANDLE_MT) != 0) {
-        lua_pushcfunction(L, handle_index);
-        lua_setfield(L, -2, "__index");
+        static luaL_Reg const methods[] = {
+            {"valid", l_handle_valid},
+            {"cancel", l_handle_cancel},
+            {"pause", l_handle_pause},
+            {"continue", l_handle_continue},
+            {NULL, NULL}
+        };
 
-#ifndef NDEBUG
-        lua_pushcfunction(L, handle_newindex);
-        lua_setfield(L, -2, "__newindex");
-#endif
+        luaL_newlib(L, methods);
+        lua_setfield(L, -2, "__index");
 
         lua_pushcfunction(L, handle_eq);
         lua_setfield(L, -2, "__eq");
