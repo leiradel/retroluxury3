@@ -140,38 +140,6 @@ static int event_index(lua_State* const L) {
     return luaL_error(L, "unknown field %s in %s", key, SAPP_EVENT_MT);
 }
 
-#ifndef NDEBUG
-static int event_newindex(lua_State* const L) {
-    event_check(L, 1);
-    char const* const key = luaL_checkstring(L, 2);
-    djb2_hash const hash = djb2(key);
-
-    switch (hash) {
-        case DJB2HASH_C(0xd9cf79d8): /* frame_count */
-        case DJB2HASH_C(0x7c9ebd07): /* type */
-        case DJB2HASH_C(0xbb20b728): /* key_code */
-        case DJB2HASH_C(0x34a71d1d): /* char_code */
-        case DJB2HASH_C(0x287a2f0e): /* key_repeat */
-        case DJB2HASH_C(0x09c26f07): /* modifiers */
-        case DJB2HASH_C(0xe42516a9): /* mouse_button */
-        case DJB2HASH_C(0xd5be1645): /* mouse_x */
-        case DJB2HASH_C(0xd5be1646): /* mouse_y */
-        case DJB2HASH_C(0x8d80dcc9): /* mouse_dx */
-        case DJB2HASH_C(0x8d80dcca): /* mouse_dy */
-        case DJB2HASH_C(0x740d326b): /* scroll_x */
-        case DJB2HASH_C(0x740d326c): /* scroll_y */
-        case DJB2HASH_C(0xf08d0700): /* touches */
-        case DJB2HASH_C(0x290c545c): /* window_width */
-        case DJB2HASH_C(0x2753a375): /* window_height */
-        case DJB2HASH_C(0xec986829): /* framebuffer_width */
-        case DJB2HASH_C(0x5c6230e2): /* framebuffer_height */
-            return luaL_error(L, "cannot change field %s in %s, object is read-only", key, SAPP_EVENT_MT);
-    }
-
-    return luaL_error(L, "unknown field %s in %s", key, SAPP_EVENT_MT);
-}
-#endif
-
 static int event_gc(lua_State* const L) {
     Event* const self = event_check(L, 1);
 
@@ -204,11 +172,6 @@ static Event* event_push(lua_State* const L) {
         if (luaL_newmetatable(L, SAPP_EVENT_MT) != 0) {
             lua_pushcfunction(L, event_index);
             lua_setfield(L, -2, "__index");
-
-#ifndef NDEBUG
-            lua_pushcfunction(L, event_newindex);
-            lua_setfield(L, -2, "__newindex");
-#endif
 
             lua_pushcfunction(L, event_gc);
             lua_setfield(L, -2, "__gc");
@@ -380,61 +343,12 @@ static int desc_index(lua_State* const L) {
     return luaL_error(L, "unknown field %s in %s", key, SAPP_DESC_MT);
 }
 
-#ifndef NDEBUG
-static int desc_newindex(lua_State* const L) {
-    desc_check(L, 1);
-    char const* const key = luaL_checkstring(L, 2);
-    djb2_hash const hash = djb2(key);
-
-    switch (hash) {
-        case DJB2HASH_C(0x9ea747dd): /* init_cb */
-        case DJB2HASH_C(0xcf8f0114): /* frame_cb */
-        case DJB2HASH_C(0x54296131): /* cleanup_cb */
-        case DJB2HASH_C(0x20a513eb): /* event_cb */
-        case DJB2HASH_C(0x99611e65): /* fail_cb */
-        case DJB2HASH_C(0x10a3b0a5): /* width */
-        case DJB2HASH_C(0x01d688de): /* height */
-        case DJB2HASH_C(0x7c5fd34f): /* sample_count */
-        case DJB2HASH_C(0x6d3c22c4): /* swap_interval */
-        case DJB2HASH_C(0x00e7ce01): /* high_dpi */
-        case DJB2HASH_C(0x479bc0b8): /* fullscreen */
-        case DJB2HASH_C(0x0f176c2b): /* alpha */
-        case DJB2HASH_C(0x28d64dde): /* window_title */
-        case DJB2HASH_C(0x5a422201): /* user_cursor */
-        case DJB2HASH_C(0xa84cf4fb): /* enable_clipboard */
-        case DJB2HASH_C(0xa951f90f): /* clipboard_size */
-        case DJB2HASH_C(0x2a57756c): /* enable_dragndrop */
-        case DJB2HASH_C(0xacfb972a): /* max_dropped_files */
-        case DJB2HASH_C(0xb2f6a8c4): /* max_dropped_file_path_length */
-        case DJB2HASH_C(0x7c98572e): /* icon */
-        case DJB2HASH_C(0xede27b02): /* gl_force_gles2 */
-        case DJB2HASH_C(0xc19fd550): /* win32_console_utf8 */
-        case DJB2HASH_C(0x7ec98e5d): /* win32_console_create */
-        case DJB2HASH_C(0x7a4ba59e): /* win32_console_attach */
-        case DJB2HASH_C(0x120621aa): /* html5_canvas_name */
-        case DJB2HASH_C(0xb5b5a41b): /* html5_canvas_resize */
-        case DJB2HASH_C(0xdc34fd9e): /* html5_preserve_drawing_buffer */
-        case DJB2HASH_C(0xcbe15833): /* html5_premultiplied_alpha */
-        case DJB2HASH_C(0xd517f52d): /* html5_ask_leave_site */
-        case DJB2HASH_C(0xcc35e51f): /* ios_keyboard_resizes_canvas */
-            return luaL_error(L, "cannot change field %s in %s, object is read-only", key, SAPP_DESC_MT);
-    }
-
-    return luaL_error(L, "unknown field %s in %s", key, SAPP_DESC_MT);
-}
-#endif
-
 static Desc* desc_push(lua_State* const L) {
     Desc* const self = lua_newuserdata(L, sizeof(*self));
 
     if (luaL_newmetatable(L, SAPP_DESC_MT) != 0) {
         lua_pushcfunction(L, desc_index);
         lua_setfield(L, -2, "__index");
-
-#ifndef NDEBUG
-        lua_pushcfunction(L, desc_newindex);
-        lua_setfield(L, -2, "__newindex");
-#endif
     }
 
     lua_setmetatable(L, -2);

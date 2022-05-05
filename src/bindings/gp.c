@@ -270,33 +270,12 @@ static int desc_index(lua_State* const L) {
     return luaL_error(L, "unknown field %s in %s", key, SGP_DESC_MT);
 }
 
-#ifndef NDEBUG
-static int desc_newindex(lua_State* const L) {
-    desc_check(L, 1);
-    char const* const key = luaL_checkstring(L, 2);
-    djb2_hash const hash = djb2(key);
-
-    switch (hash) {
-        case DJB2HASH_C(0x2ef0bbaf): /* max_vertices */
-        case DJB2HASH_C(0x9ba7a37c): /* max_commands */
-            return luaL_error(L, "cannot change field %s in %s, object is read-only", key, SGP_DESC_MT);
-    }
-
-    return luaL_error(L, "unknown field %s in %s", key, SGP_DESC_MT);
-}
-#endif
-
 static Desc* desc_push(lua_State* const L) {
     Desc* const self = lua_newuserdata(L, sizeof(*self));
 
     if (luaL_newmetatable(L, SGP_DESC_MT) != 0) {
         lua_pushcfunction(L, desc_index);
         lua_setfield(L, -2, "__index");
-
-#ifndef NDEBUG
-        lua_pushcfunction(L, desc_newindex);
-        lua_setfield(L, -2, "__newindex");
-#endif
     }
 
     lua_setmetatable(L, -2);

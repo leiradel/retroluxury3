@@ -54,34 +54,12 @@ static int desc_index(lua_State* const L) {
     return luaL_error(L, "unknown field %s in %s", key, SFETCH_DESC_MT);
 }
 
-#ifndef NDEBUG
-static int desc_newindex(lua_State* const L) {
-    desc_check(L, 1);
-    char const* const key = luaL_checkstring(L, 2);
-    djb2_hash const hash = djb2(key);
-
-    switch (hash) {
-        case DJB2HASH_C(0x7ba46c86): /* max_requests */
-        case DJB2HASH_C(0xd4a870e0): /* num_channels */
-        case DJB2HASH_C(0xa5aabe67): /* num_lanes */
-            return luaL_error(L, "cannot change field %s in %s, object is read-only", key, SFETCH_DESC_MT);
-    }
-
-    return luaL_error(L, "unknown field %s in %s", key, SFETCH_DESC_MT);
-}
-#endif
-
 static Desc* desc_push(lua_State* const L) {
     Desc* const self = lua_newuserdata(L, sizeof(*self));
 
     if (luaL_newmetatable(L, SFETCH_DESC_MT) != 0) {
         lua_pushcfunction(L, desc_index);
         lua_setfield(L, -2, "__index");
-
-#ifndef NDEBUG
-        lua_pushcfunction(L, desc_newindex);
-        lua_setfield(L, -2, "__newindex");
-#endif
     }
 
     lua_setmetatable(L, -2);
@@ -254,45 +232,12 @@ static int response_index(lua_State* const L) {
     return luaL_error(L, "unknown field %s in %s", key, SFETCH_RESPONSE_MT);
 }
 
-#ifndef NDEBUG
-static int response_newindex(lua_State* const L) {
-    response_check(L, 1);
-    char const* const key = luaL_checkstring(L, 2);
-    djb2_hash const hash = djb2(key);
-
-    switch (hash) {
-        case DJB2HASH_C(0x0190d871): /* handle */
-        case DJB2HASH_C(0x4a95afde): /* dispatched */
-        case DJB2HASH_C(0xa3780598): /* fetched */
-        case DJB2HASH_C(0x143e3307): /* paused */
-        case DJB2HASH_C(0x38d5604f): /* finished */
-        case DJB2HASH_C(0xfce3ea6a): /* failed */
-        case DJB2HASH_C(0x85037520): /* cancelled */
-        case DJB2HASH_C(0x53eff629): /* error_code */
-        case DJB2HASH_C(0xc237195e): /* channel */
-        case DJB2HASH_C(0x7c99f3a5): /* lane */
-        case DJB2HASH_C(0x7c9c25f2): /* path */
-        case DJB2HASH_C(0x37ef9cbe): /* fetched_offset */
-        case DJB2HASH_C(0xa1cb3ad2): /* fetched_size */
-        case DJB2HASH_C(0xf4f7735f): /* buffer */
-            return luaL_error(L, "cannot change field %s in %s, object is read-only", key, SFETCH_RESPONSE_MT);
-    }
-
-    return luaL_error(L, "unknown field %s in %s", key, SFETCH_RESPONSE_MT);
-}
-#endif
-
 static Response* response_push(lua_State* const L) {
     Response* const self = lua_newuserdata(L, sizeof(*self));
 
     if (luaL_newmetatable(L, SFETCH_RESPONSE_MT) != 0) {
         lua_pushcfunction(L, response_index);
         lua_setfield(L, -2, "__index");
-
-#ifndef NDEBUG
-        lua_pushcfunction(L, response_newindex);
-        lua_setfield(L, -2, "__newindex");
-#endif
     }
 
     lua_setmetatable(L, -2);

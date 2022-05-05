@@ -77,40 +77,12 @@ static int desc_index(lua_State* const L) {
     return luaL_error(L, "unknown field %s in %s", key, SG_DESC_MT);
 }
 
-#ifndef NDEBUG
-static int desc_newindex(lua_State* const L) {
-    desc_check(L, 1);
-    char const* const key = luaL_checkstring(L, 2);
-    djb2_hash const hash = djb2(key);
-
-    switch (hash) {
-        case DJB2HASH_C(0x42d88132): /* buffer_pool_size */
-        case DJB2HASH_C(0x789879bb): /* image_pool_size */
-        case DJB2HASH_C(0x00c03f2f): /* shader_pool_size */
-        case DJB2HASH_C(0x03a9b7ee): /* pipeline_pool_size */
-        case DJB2HASH_C(0x3bc833ef): /* pass_pool_size */
-        case DJB2HASH_C(0x89372a5d): /* context_pool_size */
-        case DJB2HASH_C(0x73889538): /* uniform_buffer_size */
-        case DJB2HASH_C(0x7ed6f945): /* staging_buffer_size */
-        case DJB2HASH_C(0x7b524926): /* sampler_cache_size */
-            return luaL_error(L, "cannot change field %s in %s, object is read-only", key, SG_DESC_MT);
-    }
-
-    return luaL_error(L, "unknown field %s in %s", key, SG_DESC_MT);
-}
-#endif
-
 static Desc* desc_push(lua_State* const L) {
     Desc* const self = lua_newuserdata(L, sizeof(*self));
 
     if (luaL_newmetatable(L, SG_DESC_MT) != 0) {
         lua_pushcfunction(L, desc_index);
         lua_setfield(L, -2, "__index");
-
-#ifndef NDEBUG
-        lua_pushcfunction(L, desc_newindex);
-        lua_setfield(L, -2, "__newindex");
-#endif
     }
 
     lua_setmetatable(L, -2);
