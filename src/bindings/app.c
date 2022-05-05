@@ -27,13 +27,12 @@
 #define SAPP_EVENT_MT "sapp_event"
 
 typedef struct Event {
+    lutil_CachedObject cached;
     sapp_event event;
-    struct Event* next;
-    int my_ref;
 }
 Event;
 
-static Event* free_events = NULL;
+static void* free_events = NULL;
 
 static Event* event_check(lua_State* const L, int const ndx) {
     return luaL_checkudata(L, ndx, SAPP_EVENT_MT);
@@ -142,33 +141,15 @@ static int event_index(lua_State* const L) {
 
 static int event_gc(lua_State* const L) {
     Event* const self = event_check(L, 1);
-
-    self->next = free_events;
-    free_events = self;
-
-    lua_pushvalue(L, 1);
-    self->my_ref = luaL_ref(L, LUA_REGISTRYINDEX);
-
+    lutil_collect_cached((lutil_CachedObject*)self, L, &free_events);
     return 0;
 }
 
 static Event* event_push(lua_State* const L) {
-    Event* self = NULL;
+    bool setmt = false;
+    Event* self = (Event*)lutil_push_cached(L, &free_events, sizeof(*self), &setmt);
 
-    if (free_events != NULL) {
-        self = free_events;
-        free_events = self->next;
-
-        lua_rawgeti(L, LUA_REGISTRYINDEX, self->my_ref);
-
-        luaL_unref(L, LUA_REGISTRYINDEX, self->my_ref);
-        self->my_ref = LUA_NOREF;
-    }
-    else {
-        self = lua_newuserdata(L, sizeof(*self));
-        self->next = NULL;
-        self->my_ref = LUA_NOREF;
-
+    if (setmt) {
         if (luaL_newmetatable(L, SAPP_EVENT_MT) != 0) {
             lua_pushcfunction(L, event_index);
             lua_setfield(L, -2, "__index");

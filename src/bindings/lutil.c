@@ -163,3 +163,36 @@ Vector* lutil_push_array(lutil_VectorDesc const* const desc, lua_State* const L)
     lua_setmetatable(L, -2);
     return self;
 }
+
+lutil_CachedObject* lutil_push_cached(lua_State* const L, void** list_head, size_t const size, bool* const setmt) {
+    lutil_CachedObject* cached = NULL;
+
+    if (*list_head != NULL) {
+        cached = *list_head;
+        *list_head = cached->next;
+
+        lua_rawgeti(L, LUA_REGISTRYINDEX, cached->ref);
+
+        luaL_unref(L, LUA_REGISTRYINDEX, cached->ref);
+        cached->ref = LUA_NOREF;
+
+        *setmt = false;
+    }
+    else {
+        cached = lua_newuserdata(L, size);
+        cached->next = NULL;
+        cached->ref = LUA_NOREF;
+
+        *setmt = true;
+    }
+
+    return cached;
+}
+
+void lutil_collect_cached(lutil_CachedObject* const cached, lua_State* const L, void** list_head) {
+    cached->next = *list_head;
+    *list_head = cached;
+
+    lua_pushvalue(L, 1);
+    cached->ref = luaL_ref(L, LUA_REGISTRYINDEX);
+}
