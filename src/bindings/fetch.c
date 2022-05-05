@@ -313,7 +313,7 @@ static int l_setup(lua_State* const L) {
     sfetch_desc_t desc;
     memset(&desc, 0, sizeof(desc));
 
-    if (!lua_isnoneornil(L, 1)) {
+    if (!lua_isnone(L, 1)) {
         if (lua_getfield(L, 1, "max_requests") != LUA_TNIL) {
             desc.max_requests = luaL_checkinteger(L, -1);
         }

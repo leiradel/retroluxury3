@@ -131,7 +131,7 @@ static Desc* desc_push(lua_State* const L) {
 #define SG_PASS_ACTION_MT "sg_pass_action"
 
 static int pass_action_push(lua_State* const L, int const ndx) {
-    bool const has_desc = !lua_isnoneornil(L, ndx);
+    bool const has_desc = !lua_isnone(L, ndx);
 
     sg_pass_action* const self = lua_newuserdata(L, sizeof(*self));
     memset(self, 0, sizeof(*self));
