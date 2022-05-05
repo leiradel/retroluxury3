@@ -32,7 +32,10 @@ ENGINE_OBJS = \
 	src/bindings/app.o \
 	src/bindings/djb2.o \
 	src/bindings/fetch.o \
+	src/bindings/gfx.o \
+	src/bindings/gp.o \
 	src/bindings/image.o \
+	src/bindings/impl.o \
 	src/bindings/lutil.o \
 	src/bindings/vector.o
 

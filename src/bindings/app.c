@@ -928,12 +928,15 @@ Module;
 static int l_searcher(lua_State* const L) {
     LUAMOD_API int luaopen_sapp(lua_State* L);
     LUAMOD_API int luaopen_sokol_fetch(lua_State* const L);
+    LUAMOD_API int luaopen_sokol_gfx(lua_State* const L);
+    LUAMOD_API int luaopen_sokol_gp(lua_State* const L);
     LUAMOD_API int luaopen_rl3_image(lua_State* const L);
-
 
     static Module const modules[] = {
         MODC("sokol.app", luaopen_sokol_app),
         MODC("sokol.fetch", luaopen_sokol_fetch),
+        MODC("sokol.gfx", luaopen_sokol_gfx),
+        MODC("sokol.gp", luaopen_sokol_gp),
         MODC("rl3.image", luaopen_rl3_image),
     };
 
