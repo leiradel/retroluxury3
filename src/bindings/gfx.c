@@ -131,10 +131,13 @@ static Desc* desc_push(lua_State* const L) {
 #define SG_PASS_ACTION_MT "sg_pass_action"
 
 static int pass_action_push(lua_State* const L, int const ndx) {
+    bool const has_desc = !lua_isnoneornil(L, ndx);
+
     sg_pass_action* const self = lua_newuserdata(L, sizeof(*self));
     memset(self, 0, sizeof(*self));
 
-    int const top = lua_gettop(L);
+    if (has_desc) {
+        int const top = lua_gettop(L);
 
     if (lua_getfield(L, ndx, "colors") != LUA_TNIL) {
         for (lua_Integer i = 1; i < SG_MAX_COLOR_ATTACHMENTS; i++) {
@@ -182,12 +185,13 @@ static int pass_action_push(lua_State* const L, int const ndx) {
         if (lua_rawgeti(L, -2, 2) != LUA_TNIL) {
             self->stencil.value = luaL_checkinteger(L, -1);
         }
+        }
+
+        lua_settop(L, top);
     }
 
-    lua_settop(L, top);
-
     if (luaL_newmetatable(L, SG_PASS_ACTION_MT) != 0) {
-        // TODO
+        // Nothing
     }
 
     lua_setmetatable(L, -2);
