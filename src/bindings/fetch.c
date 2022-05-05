@@ -1,9 +1,9 @@
 #include <stdint.h>
+#include <string.h>
 
 #include <lua.h>
 #include <lauxlib.h>
 
-#define SOKOL_IMPL
 #include <sokol_fetch.h>
 
 #include "djb2.h"

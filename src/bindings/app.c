@@ -1,6 +1,3 @@
-#define _POSIX_C_SOURCE 199309L
-#include <time.h> // for clock_gettime
-
 #include <string.h>
 #include <stdlib.h>
 
@@ -8,9 +5,9 @@
 #include <lauxlib.h>
 #include <lualib.h>
 
-#define SOKOL_IMPL
-#define SOKOL_GLCORE33
 #include <sokol_app.h>
+#include <sokol_gfx.h>
+#include <sokol_glue.h>
 
 #include "djb2.h"
 #include "lutil.h"
