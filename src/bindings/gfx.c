@@ -8,6 +8,7 @@
 #include <sokol_glue.h>
 
 #include "djb2.h"
+#include "lutil.h"
 
 /*
  ######   ######           ########  ########  ######   ######  
@@ -102,76 +103,95 @@ static Desc* desc_push(lua_State* const L) {
 
 #define SG_PASS_ACTION_MT "sg_pass_action"
 
+typedef struct {
+    lutil_CachedObject cached;
+    sg_pass_action pass_action;
+}
+PassAction;
+
+static void* free_pass_actions = NULL;
+
+static PassAction* pass_action_check(lua_State* const L, int const ndx) {
+    return luaL_checkudata(L, ndx, SG_PASS_ACTION_MT);
+}
+
+static int pass_action_gc(lua_State* const L) {
+    PassAction* const self = pass_action_check(L, 1);
+    lutil_collect_cached((lutil_CachedObject*)self, L, &free_pass_actions);
+    return 0;
+}
+
 static int pass_action_push(lua_State* const L, int const ndx) {
     bool const has_desc = !lua_isnone(L, ndx);
 
-    sg_pass_action* const self = lua_newuserdata(L, sizeof(*self));
-    memset(self, 0, sizeof(*self));
+    bool setmt = false;
+    PassAction* const self = (PassAction*)lutil_push_cached(L, &free_pass_actions, sizeof(PassAction), &setmt);
+    memset(&self->pass_action, 0, sizeof(self->pass_action));
 
     if (has_desc) {
         int const top = lua_gettop(L);
 
-    if (lua_getfield(L, ndx, "colors") != LUA_TNIL) {
-        for (lua_Integer i = 1; i < SG_MAX_COLOR_ATTACHMENTS; i++) {
-            lua_geti(L, -1, i);
+        if (lua_getfield(L, ndx, "colors") != LUA_TNIL) {
+            for (lua_Integer i = 1; i < SG_MAX_COLOR_ATTACHMENTS; i++) {
+                lua_geti(L, -1, i);
 
-            if (lua_isnil(L, -1)) {
-                lua_pop(L, 1);
-                break;
+                if (lua_isnil(L, -1)) {
+                    lua_pop(L, 1);
+                    break;
+                }
+
+                lua_geti(L, -1, 1);
+                self->pass_action.colors[i - 1].action = luaL_checkinteger(L, -1);
+
+                lua_geti(L, -2, 2);
+                self->pass_action.colors[i - 1].value.r = luaL_checknumber(L, -1);
+
+                lua_geti(L, -3, 3);
+                self->pass_action.colors[i - 1].value.g = luaL_checknumber(L, -1);
+
+                lua_geti(L, -4, 4);
+                self->pass_action.colors[i - 1].value.b = luaL_checknumber(L, -1);
+
+                lua_geti(L, -5, 5);
+                self->pass_action.colors[i - 1].value.a = luaL_checknumber(L, -1);
+
+                lua_pop(L, 6);
+            }
+        }
+
+        if (lua_getfield(L, ndx, "depth") != LUA_TNIL) {
+            if (lua_rawgeti(L, -1, 1) != LUA_TNIL) {
+                self->pass_action.depth.action = luaL_checkinteger(L, -1);
             }
 
-            lua_geti(L, -1, 1);
-            self->colors[i - 1].action = luaL_checkinteger(L, -1);
-
-            lua_geti(L, -2, 2);
-            self->colors[i - 1].value.r = luaL_checknumber(L, -1);
-
-            lua_geti(L, -3, 3);
-            self->colors[i - 1].value.g = luaL_checknumber(L, -1);
-
-            lua_geti(L, -4, 4);
-            self->colors[i - 1].value.b = luaL_checknumber(L, -1);
-
-            lua_geti(L, -5, 5);
-            self->colors[i - 1].value.a = luaL_checknumber(L, -1);
-
-            lua_pop(L, 6);
-        }
-    }
-
-    if (lua_getfield(L, ndx, "depth") != LUA_TNIL) {
-        if (lua_rawgeti(L, -1, 1) != LUA_TNIL) {
-            self->depth.action = luaL_checkinteger(L, -1);
+            if (lua_rawgeti(L, -2, 2) != LUA_TNIL) {
+                self->pass_action.depth.value = luaL_checknumber(L, -1);
+            }
         }
 
-        if (lua_rawgeti(L, -2, 2) != LUA_TNIL) {
-            self->depth.value = luaL_checknumber(L, -1);
-        }
-    }
+        if (lua_getfield(L, ndx, "stencil") != LUA_TNIL) {
+            if (lua_rawgeti(L, -1, 1) != LUA_TNIL) {
+                self->pass_action.stencil.action = luaL_checkinteger(L, -1);
+            }
 
-    if (lua_getfield(L, ndx, "stencil") != LUA_TNIL) {
-        if (lua_rawgeti(L, -1, 1) != LUA_TNIL) {
-            self->stencil.action = luaL_checkinteger(L, -1);
-        }
-
-        if (lua_rawgeti(L, -2, 2) != LUA_TNIL) {
-            self->stencil.value = luaL_checkinteger(L, -1);
-        }
+            if (lua_rawgeti(L, -2, 2) != LUA_TNIL) {
+                self->pass_action.stencil.value = luaL_checkinteger(L, -1);
+            }
         }
 
         lua_settop(L, top);
     }
 
-    if (luaL_newmetatable(L, SG_PASS_ACTION_MT) != 0) {
-        // Nothing
+    if (setmt) {
+        if (luaL_newmetatable(L, SG_PASS_ACTION_MT) != 0) {
+            lua_pushcfunction(L, pass_action_gc);
+            lua_setfield(L, -2, "__gc");
+        }
+
+        lua_setmetatable(L, -2);
     }
 
-    lua_setmetatable(L, -2);
     return 1;
-}
-
-static sg_pass_action* pass_action_check(lua_State* const L, int const ndx) {
-    return luaL_checkudata(L, ndx, SG_PASS_ACTION_MT);
 }
 
 static int l_new_pass_action(lua_State* const L) {
@@ -207,11 +227,11 @@ static int l_isvalid(lua_State* const L) {
 }
 
 static int l_begin_default_pass(lua_State* const L) {
-    sg_pass_action const* const pass_action = pass_action_check(L, 1);
+    PassAction const* const pass_action = pass_action_check(L, 1);
     int const width = luaL_checkinteger(L, 2);
     int const height = luaL_checkinteger(L, 3);
 
-    sg_begin_default_pass(pass_action, width, height);
+    sg_begin_default_pass(&pass_action->pass_action, width, height);
     return 0;
 }
 
