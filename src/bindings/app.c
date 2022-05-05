@@ -41,17 +41,17 @@ static Event* event_check(lua_State* const L, int const ndx) {
 
 static int event_touches(lua_State* const L) {
     Event const* const self = event_check(L, 1);
-    lua_Integer const index = luaL_checkinteger(L, 2) - 1;
+    lua_Integer const index = luaL_checkinteger(L, 2);
 
-    if (index >= 0 && index < self->event.num_touches) {
-        lua_pushinteger(L, self->event.touches[index].identifier);
-        lua_pushnumber(L, self->event.touches[index].pos_x);
-        lua_pushnumber(L, self->event.touches[index].pos_y);
-        lua_pushboolean(L, self->event.touches[index].changed);
-        return 4;
+    if (index < 1 || index >= self->event.num_touches) {
+        return luaL_error(L, "index %I out of bounds", index);
     }
 
-    return 0;
+    lua_pushinteger(L, self->event.touches[index - 1].identifier);
+    lua_pushnumber(L, self->event.touches[index - 1].pos_x);
+    lua_pushnumber(L, self->event.touches[index - 1].pos_y);
+    lua_pushboolean(L, self->event.touches[index - 1].changed);
+    return 4;
 }
 
 static int event_index(lua_State* const L) {
