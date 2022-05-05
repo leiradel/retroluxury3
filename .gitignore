@@ -1,4 +1,5 @@
 .vscode/
+rl3
 src/bindings/app.lua.h
 src/bindings/fetch.lua.h
 

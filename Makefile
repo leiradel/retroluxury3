@@ -105,9 +105,9 @@ ZLIB_OBJS = \
 RETROLUXURY3_OBJS = $(ENGINE_OBJS)
 3RDPARTY_OBJS = $(LIBJPEG_OBJS) $(LIBPNG_OBJS) $(LUA_OBJS) $(ZLIB_OBJS)
 
-all: main
+all: rl3
 
-main: $(RETROLUXURY3_OBJS) $(3RDPARTY_OBJS)
+rl3: $(RETROLUXURY3_OBJS) $(3RDPARTY_OBJS)
 	@echo "Creating executable: $@"
 	@$(CC) -o "$@" $+ $(LIBS)
 
