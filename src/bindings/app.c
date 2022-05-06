@@ -28,7 +28,7 @@
 
 typedef struct Event {
     lutil_CachedObject cached;
-    sapp_event event;
+    sapp_event data;
 }
 Event;
 
@@ -42,14 +42,14 @@ static int event_touches(lua_State* const L) {
     Event const* const self = event_check(L, 1);
     lua_Integer const index = luaL_checkinteger(L, 2);
 
-    if (index < 1 || index >= self->event.num_touches) {
+    if (index < 1 || index >= self->data.num_touches) {
         return luaL_error(L, "index %I out of bounds", index);
     }
 
-    lua_pushinteger(L, self->event.touches[index - 1].identifier);
-    lua_pushnumber(L, self->event.touches[index - 1].pos_x);
-    lua_pushnumber(L, self->event.touches[index - 1].pos_y);
-    lua_pushboolean(L, self->event.touches[index - 1].changed);
+    lua_pushinteger(L, self->data.touches[index - 1].identifier);
+    lua_pushnumber(L, self->data.touches[index - 1].pos_x);
+    lua_pushnumber(L, self->data.touches[index - 1].pos_y);
+    lua_pushboolean(L, self->data.touches[index - 1].changed);
     return 4;
 }
 
@@ -60,59 +60,59 @@ static int event_index(lua_State* const L) {
 
     switch (hash) {
         case DJB2HASH_C(0xd9cf79d8): /* frame_count */
-            lua_pushinteger(L, self->event.frame_count);
+            lua_pushinteger(L, self->data.frame_count);
             return 1;
 
         case DJB2HASH_C(0x7c9ebd07): /* type */
-            lua_pushinteger(L, self->event.type);
+            lua_pushinteger(L, self->data.type);
             return 1;
 
         case DJB2HASH_C(0xbb20b728): /* key_code */
-            lua_pushinteger(L, self->event.key_code);
+            lua_pushinteger(L, self->data.key_code);
             return 1;
 
         case DJB2HASH_C(0x34a71d1d): /* char_code */
-            lua_pushinteger(L, self->event.char_code);
+            lua_pushinteger(L, self->data.char_code);
             return 1;
 
         case DJB2HASH_C(0x287a2f0e): /* key_repeat */
-            lua_pushboolean(L, self->event.key_repeat);
+            lua_pushboolean(L, self->data.key_repeat);
             return 1;
 
         case DJB2HASH_C(0x09c26f07): /* modifiers */
-            lua_pushinteger(L, self->event.modifiers);
+            lua_pushinteger(L, self->data.modifiers);
             return 1;
 
         case DJB2HASH_C(0xe42516a9): /* mouse_button */
-            lua_pushinteger(L, self->event.mouse_button);
+            lua_pushinteger(L, self->data.mouse_button);
             return 1;
 
         case DJB2HASH_C(0xd5be1645): /* mouse_x */
-            lua_pushnumber(L, self->event.mouse_x);
+            lua_pushnumber(L, self->data.mouse_x);
             return 1;
 
         case DJB2HASH_C(0xd5be1646): /* mouse_y */
-            lua_pushnumber(L, self->event.mouse_y);
+            lua_pushnumber(L, self->data.mouse_y);
             return 1;
 
         case DJB2HASH_C(0x8d80dcc9): /* mouse_dx */
-            lua_pushnumber(L, self->event.mouse_dx);
+            lua_pushnumber(L, self->data.mouse_dx);
             return 1;
 
         case DJB2HASH_C(0x8d80dcca): /* mouse_dy */
-            lua_pushnumber(L, self->event.mouse_dy);
+            lua_pushnumber(L, self->data.mouse_dy);
             return 1;
 
         case DJB2HASH_C(0x740d326b): /* scroll_x */
-            lua_pushnumber(L, self->event.scroll_x);
+            lua_pushnumber(L, self->data.scroll_x);
             return 1;
 
         case DJB2HASH_C(0x740d326c): /* scroll_y */
-            lua_pushnumber(L, self->event.scroll_y);
+            lua_pushnumber(L, self->data.scroll_y);
             return 1;
 
         case DJB2HASH_C(0x444b846f): /* num_touches */
-            lua_pushinteger(L, self->event.num_touches);
+            lua_pushinteger(L, self->data.num_touches);
             return 1;
 
         case DJB2HASH_C(0xf08d0700): /* touches */
@@ -120,19 +120,19 @@ static int event_index(lua_State* const L) {
             return 1;
 
         case DJB2HASH_C(0x290c545c): /* window_width */
-            lua_pushinteger(L, self->event.window_width);
+            lua_pushinteger(L, self->data.window_width);
             return 1;
 
         case DJB2HASH_C(0x2753a375): /* window_height */
-            lua_pushinteger(L, self->event.window_height);
+            lua_pushinteger(L, self->data.window_height);
             return 1;
 
         case DJB2HASH_C(0xec986829): /* framebuffer_width */
-            lua_pushinteger(L, self->event.framebuffer_width);
+            lua_pushinteger(L, self->data.framebuffer_width);
             return 1;
 
         case DJB2HASH_C(0x5c6230e2): /* framebuffer_height */
-            lua_pushinteger(L, self->event.framebuffer_height);
+            lua_pushinteger(L, self->data.framebuffer_height);
             return 1;
     }
 
@@ -926,7 +926,7 @@ static void eventcb(sapp_event const* const event, void* const user_data) {
     if (event_cb_ref != LUA_NOREF) {
         lua_State* const L = user_data;
         lua_rawgeti(L, LUA_REGISTRYINDEX, event_cb_ref);
-        event_push(L)->event = *event;
+        event_push(L)->data = *event;
 
         if (lutil_pcall(L, 1, 0) != LUA_OK) {
 #ifndef NDEBUG
