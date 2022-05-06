@@ -1,3 +1,5 @@
+#include "gfx.h"
+
 #include <string.h>
 #include <stdlib.h>
 
@@ -565,6 +567,15 @@ static int l_html5_get_dropped_file_size(lua_State* L) {
     return 1;
 }
 
+// From sokol_glue
+static int l_sgcontext(lua_State* const L) {
+    SgContextDesc* const desc = sg_context_desc_push(L);
+    memset(&desc->data, 0, sizeof(desc->data));
+
+    desc->data = sapp_sgcontext();
+    return 1;
+}
+
 /*
 ##       ##     ##    ###     #######  ########  ######## ##    ##          ######   #######  ##    ##  #######  ##                  ###    ########  ########  
 ##       ##     ##   ## ##   ##     ## ##     ## ##       ###   ##         ##    ## ##     ## ##   ##  ##     ## ##                 ## ##   ##     ## ##     ## 
@@ -609,6 +620,7 @@ LUAMOD_API int luaopen_sokol_app(lua_State* const L) {
         {"gles2", l_gles2},
         {"html5_ask_leave_site", l_html5_ask_leave_site},
         {"html5_get_dropped_file_size", l_html5_get_dropped_file_size},
+        {"sgcontext", l_sgcontext},
 
         {NULL, NULL}
     };
