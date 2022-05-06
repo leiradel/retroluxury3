@@ -132,7 +132,7 @@ Vector* lutil_check_array(lutil_VectorDesc const* const desc, lua_State* const L
 }
 
 Vector* lutil_push_array(lutil_VectorDesc const* const desc, lua_State* const L) {
-    Vector* self = lua_newuserdata(L, sizeof(Vector));
+    Vector* const self = lua_newuserdata(L, sizeof(Vector));
     vector_init(self, desc->element_size);
 
     if (luaL_newmetatable(L, desc->metatable_name) != 0) {
