@@ -174,6 +174,16 @@ static int l_new_desc(lua_State* const L) {
  ######   ######   #######  ######   #######  ##    ##    ##    ######## ##     ##    ##    ####### ########  ########  ######   ######  
 */
 
+/*
+These fields are not really a good fit for application written in Lua, and were
+left out of this binding:
+
+* sg_gl_context_desc gl;
+* sg_metal_context_desc metal;
+* sg_d3d11_context_desc d3d11;
+* sg_wgpu_context_desc wgpu;
+*/
+
 #define SG_CONTEXT_DESC_MT "sg_context_desc"
 
 static void* free_context_descs = NULL;
@@ -191,12 +201,36 @@ static int sg_context_desc_index(lua_State* const L) {
         case DJB2HASH_C(0x0c91394c): /* color_format */
             lua_pushinteger(L, self->data.color_format);
             return 1;
+
         case DJB2HASH_C(0x23ebaae2): /* depth_format */
             lua_pushinteger(L, self->data.depth_format);
             return 1;
+
         case DJB2HASH_C(0x7c5fd34f): /* sample_count */
             lua_pushinteger(L, self->data.sample_count);
             return 1;
+    }
+
+    return luaL_error(L, "unknown field %s in %s", key, SG_CONTEXT_DESC_MT);
+}
+
+static int sg_context_desc_newindex(lua_State* const L) {
+    SgContextDesc* const self = sg_context_desc_check(L, 1);
+    char const* const key = luaL_checkstring(L, 2);
+    djb2_hash const hash = djb2(key);
+
+    switch (hash) {
+        case DJB2HASH_C(0x0c91394c): /* color_format */
+            self->data.color_format = luaL_checkinteger(L, 3);
+            return 0;
+
+        case DJB2HASH_C(0x23ebaae2): /* depth_format */
+            self->data.depth_format = luaL_checkinteger(L, 3);
+            return 0;
+
+        case DJB2HASH_C(0x7c5fd34f): /* sample_count */
+            self->data.sample_count = luaL_checkinteger(L, 3);
+            return 0;
     }
 
     return luaL_error(L, "unknown field %s in %s", key, SG_CONTEXT_DESC_MT);
@@ -216,6 +250,9 @@ SgContextDesc* sg_context_desc_push(lua_State* const L) {
         if (luaL_newmetatable(L, SG_CONTEXT_DESC_MT) != 0) {
             lua_pushcfunction(L, sg_context_desc_index);
             lua_setfield(L, -2, "__index");
+
+            lua_pushcfunction(L, sg_context_desc_newindex);
+            lua_setfield(L, -2, "__newindex");
 
             lua_pushcfunction(L, sg_context_desc_gc);
             lua_setfield(L, -2, "__gc");
