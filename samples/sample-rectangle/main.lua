@@ -42,7 +42,9 @@ end
 -- Called when the application is initializing.
 local function init()
     -- Initialize Sokol GFX.
-    gfx.setup_from_app()
+    local sgdesc = gfx.new_desc()
+    sgdesc.context = app.sgcontext()
+    gfx.setup(sgdesc)
 
     if not gfx.isvalid() then
         error('Failed to create Sokol GFX context!')
