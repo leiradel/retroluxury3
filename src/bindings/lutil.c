@@ -403,15 +403,7 @@ void* lutil_push_struct(lutil_StructDesc* const desc, lua_State* const L) {
 }
 
 static void* push_substruct(void* const field_data, int const ndx, lutil_StructDesc* const desc, lua_State* const L) {
-    static lutil_StructDesc substructures = {
-        "substructure",
-        0,
-        0,
-        NULL,
-        0,
-        NULL,
-        NULL,
-    };
+    static lutil_StructDesc substructures = {"substructure", 0, 0, NULL, 0, NULL, NULL};
 
     bool setmt = false;
     SubStructure* const substructure = (SubStructure*)lutil_push_cached(L, &substructures.free_list, sizeof(SubStructure), &setmt);
