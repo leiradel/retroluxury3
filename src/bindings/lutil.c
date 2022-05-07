@@ -206,8 +206,7 @@ typedef struct {
 }
 Structure;
 
-#define LUTIL_STRUCTURE_HEADER_SIZE ((sizeof(Structure) + 15) & ~15)
-#define LUTIL_STRUCTURE_DATA(s, n) ((n*)(uint8_t*)s + LUTIL_STRUCTURE_HEADER_SIZE)
+static void* lutil_push_substruct(Structure* const, int const, lutil_FieldDesc const* const, lua_State* const);
 
 void* lutil_check_struct(lutil_StructDesc const* const desc, lua_State* const L, int const ndx) {
     void* const structure = luaL_checkudata(L, ndx, desc->name);
@@ -216,7 +215,7 @@ void* lutil_check_struct(lutil_StructDesc const* const desc, lua_State* const L,
 
 static int struct_index(lua_State* const L) {
     lutil_StructDesc* const desc = lua_touserdata(L, lua_upvalueindex(1));
-    Structure const* const structure = lutil_check_struct(desc, L, 1);
+    Structure* const structure = lutil_check_struct(desc, L, 1);
 
     char const* const key = luaL_checkstring(L, 2);
     djb2_hash const hash = djb2(key);
@@ -257,7 +256,8 @@ static int struct_index(lua_State* const L) {
                     return 1;
 
                 case LUTIL_STRUCT:
-                    break;
+                    lutil_push_substruct(structure, 1, field, L);
+                    return 1;
             }
 
             return luaL_error(L, "field %s type in %s is unknown", key, desc->name);
@@ -335,16 +335,17 @@ static int struct_gc(lua_State* const L) {
 }
 
 void* lutil_push_struct(lutil_StructDesc* const desc, lua_State* const L) {
+    size_t const header_size = (sizeof(Structure) + 15) & ~15;
     bool setmt = false;
 
     Structure* const structure = (Structure*)lutil_push_cached(
         L,
         &desc->free_list,
-        LUTIL_STRUCTURE_HEADER_SIZE + desc->size,
+        header_size + desc->size,
         &setmt
     );
 
-    structure->data = LUTIL_STRUCTURE_DATA(structure, void);
+    structure->data = (uint8_t*)structure + header_size;
     memset(structure->data, 0, desc->size);
     structure->parent_ref = LUA_NOREF;
 
@@ -359,6 +360,48 @@ void* lutil_push_struct(lutil_StructDesc* const desc, lua_State* const L) {
             lua_setfield(L, -2, "__newindex");
 
             lua_pushlightuserdata(L, desc);
+            lua_pushcclosure(L, struct_gc, 1);
+            lua_setfield(L, -2, "__gc");
+        }
+
+        lua_setmetatable(L, -2);
+    }
+
+    return structure->data;
+}
+
+static void* lutil_push_substruct(Structure* const parent, int const ndx, lutil_FieldDesc const* const field, lua_State* const L) {
+    static lutil_StructDesc references = {
+        "references",
+        sizeof(Structure),
+        0,
+        NULL,
+        0,
+        NULL,
+        NULL,
+    };
+
+    bool setmt = false;
+    Structure* const structure = (Structure*)lutil_push_cached(L, &references.free_list, sizeof(Structure), &setmt);
+
+    structure->data = (uint8_t*)parent->data + field->offset;
+
+    lua_pushvalue(L, ndx);
+    structure->parent_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+
+    lutil_StructDesc* const desc = field->structure;
+
+    if (setmt) {
+        if (luaL_newmetatable(L, desc->name) != 0) {
+            lua_pushlightuserdata(L, desc);
+            lua_pushcclosure(L, struct_index, 1);
+            lua_setfield(L, -2, "__index");
+
+            lua_pushlightuserdata(L, desc);
+            lua_pushcclosure(L, struct_newindex, 1);
+            lua_setfield(L, -2, "__newindex");
+
+            lua_pushlightuserdata(L, &references);
             lua_pushcclosure(L, struct_gc, 1);
             lua_setfield(L, -2, "__gc");
         }
