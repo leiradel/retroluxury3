@@ -149,7 +149,7 @@ local function emit(struct, fields, total)
     io.write(string.format('    %d,\n', count))
     io.write(string.format('    %s_field_lookup,\n', struct))
     io.write(string.format('    NULL\n'))
-    io.write(string.format('\n};\n'))
+    io.write(string.format('};\n'))
 end
 
 local fields, total = parse('sapp_event', def)
