@@ -109,7 +109,7 @@ local function emit(struct, fields, total)
 
     io.write(string.format('\n};\n\n'))
 
-    io.write(string.format('static lutil_StructDesc const %s_desc = {\n', struct))
+    io.write(string.format('static lutil_StructDesc %s_desc = {\n', struct))
     io.write(string.format('    "%s",\n', struct))
     io.write(string.format('    sizeof(%s),\n', struct))
     io.write(string.format('    sizeof(%s_fields) / sizeof(%s_fields[0]),\n', struct, struct))
