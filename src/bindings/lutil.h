@@ -52,16 +52,16 @@ lutil_Type;
 
 typedef struct {
     djb2_hash const hash;
-    lutil_Type type;
-    const char* id;
+    lutil_Type const type;
+    const char* const id;
     size_t const offset;
     struct lutil_StructDesc* const structure;
-    uint8_t count_field;
+    uint8_t const count_field;
 }
 lutil_FieldDesc;
 
 typedef struct lutil_StructDesc {
-    char const* const name;
+    char const* const id;
     size_t const size;
     size_t const num_fields;
     lutil_FieldDesc const* const fields;
