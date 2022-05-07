@@ -39,15 +39,33 @@ local function parse(struct, fields)
         ['float'] = 'LUTIL_FLOAT',
         ['uint32_t'] = 'LUTIL_U32',
         ['uint64_t'] = 'LUTIL_U64',
-        ['struct'] = 'LUTIL_STRUCT',
         ['uintptr_t'] = 'LUTIL_UPTR'
     }
 
     local data, count = {}, 0
 
     for line in fields:gmatch('(.-)\n') do
-        local type, id = line:match('%s*([%a_][%w_]*)%s*([%a_][%w_]*)')
-        data[id] = {id = id, type = types[type], hash = djb2(id), index = count}
+        local decl, id, array = line:match('%s*([%a_][%w_]*%s*%*?)%s*([%a_][%w_]*)%[([%a_][%w_]*)%]')
+
+        if not decl then
+            decl, id = line:match('%s*([%a_][%w_]*%s*%*?)%s*([%a_][%w_]*)')
+        end
+
+        local type = decl:match('([%a_][%w_]*)')
+        local pointer = decl:find('*', 1, true) ~= nil
+        
+        print(decl, id, array, type, pointer)
+
+        data[id] = {
+            id = id,
+            type = types[type] or 'LUTIL_STRUCT',
+            struct = type,
+            pointer = pointer,
+            array = array,
+            hash = djb2(id),
+            index = count
+        }
+
         data[count] = data[id]
         count = count + 1
     end
@@ -86,7 +104,21 @@ local function emit(struct, fields, total)
 
     for index = 0, total - 1 do
         local info = fields[index]
-        io.write(string.format('    /* %3d */ {DJB2HASH_C(0x%08x), %s, "%s", LUTIL_OFS(%s, %s)},\n', index + 1, info.hash, info.type, info.id, struct, info.id))
+        local type = info.pointer and string.format('%s | LUTIL_POINTER', info.type) or info.type
+        local desc = info.type == 'LUTIL_STRUCT' and string.format('&%s_desc', info.struct) or 'NULL'
+        local array = info.array and (fields[info.array].index + 1) or 0
+
+        io.write(string.format(
+            '    /* %3d */ {DJB2HASH_C(0x%08x), %s, "%s", LUTIL_OFS(%s, %s), %s, %d},\n',
+            index + 1,
+            info.hash,
+            type,
+            info.id,
+            struct,
+            info.id,
+            desc,
+            array
+        ))
     end
 
     io.write(string.format('};\n\n'))
