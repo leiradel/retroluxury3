@@ -238,7 +238,7 @@ static void* get_data(Native* const native) {
     return NULL;
 }
 
-static void* push_substruct(void* const, int const, lutil_StructDesc* const, lua_State* const);
+static void push_substruct(void* const, int const, lutil_StructDesc* const, lua_State* const);
 
 void* lutil_check_struct(lutil_StructDesc const* const desc, lua_State* const L, int const ndx) {
     void* const native = luaL_checkudata(L, ndx, desc->id);
@@ -402,7 +402,7 @@ void* lutil_push_struct(lutil_StructDesc* const desc, lua_State* const L) {
     return data;
 }
 
-static void* push_substruct(void* const field_data, int const ndx, lutil_StructDesc* const desc, lua_State* const L) {
+static void push_substruct(void* const field_data, int const ndx, lutil_StructDesc* const desc, lua_State* const L) {
     static lutil_StructDesc substructures = {"substructure", 0, 0, NULL, 0, NULL, NULL};
 
     bool setmt = false;
@@ -411,7 +411,7 @@ static void* push_substruct(void* const field_data, int const ndx, lutil_StructD
 
     lua_pushvalue(L, ndx);
     substructure->parent_ref = luaL_ref(L, LUA_REGISTRYINDEX);
-    void* data = substructure->data = field_data;
+    substructure->data = field_data;
 
     if (setmt) {
         if (luaL_newmetatable(L, desc->id) != 0) {
@@ -430,6 +430,4 @@ static void* push_substruct(void* const field_data, int const ndx, lutil_StructD
 
         lua_setmetatable(L, -2);
     }
-
-    return data;
 }
