@@ -17,6 +17,37 @@
 #include "app.lua.h"
 
 /*
+ ######     ###    ########  ########          ########  #######  ##     ##  ######  ##     ## ########   #######  #### ##    ## ######## 
+##    ##   ## ##   ##     ## ##     ##            ##    ##     ## ##     ## ##    ## ##     ## ##     ## ##     ##  ##  ###   ##    ##    
+##        ##   ##  ##     ## ##     ##            ##    ##     ## ##     ## ##       ##     ## ##     ## ##     ##  ##  ####  ##    ##    
+ ######  ##     ## ########  ########             ##    ##     ## ##     ## ##       ######### ########  ##     ##  ##  ## ## ##    ##    
+      ## ######### ##        ##                   ##    ##     ## ##     ## ##       ##     ## ##        ##     ##  ##  ##  ####    ##    
+##    ## ##     ## ##        ##                   ##    ##     ## ##     ## ##    ## ##     ## ##        ##     ##  ##  ##   ###    ##    
+ ######  ##     ## ##        ##        #######    ##     #######   #######   ######  ##     ## ##         #######  #### ##    ##    ##    
+*/
+
+static lutil_FieldDesc const sapp_touchpoint_fields[4] = {
+    /*   1 */ {DJB2HASH_C(0xbe5ad288), LUTIL_UPTR, "identifier", LUTIL_OFS(sapp_touchpoint, identifier)},
+    /*   2 */ {DJB2HASH_C(0x10288c8e), LUTIL_FLOAT, "pos_x", LUTIL_OFS(sapp_touchpoint, pos_x)},
+    /*   3 */ {DJB2HASH_C(0x10288c8f), LUTIL_FLOAT, "pos_y", LUTIL_OFS(sapp_touchpoint, pos_y)},
+    /*   4 */ {DJB2HASH_C(0xc236fb8f), LUTIL_BOOL, "changed", LUTIL_OFS(sapp_touchpoint, changed)},
+};
+
+static uint8_t const sapp_touchpoint_field_lookup[5] = {
+    0, 1, 4, 2, 3
+};
+
+static lutil_StructDesc sapp_touchpoint_desc = {
+    "sapp_touchpoint",
+    sizeof(sapp_touchpoint),
+    sizeof(sapp_touchpoint_fields) / sizeof(sapp_touchpoint_fields[0]),
+    sapp_touchpoint_fields,
+    5,
+    sapp_touchpoint_field_lookup,
+    NULL
+};
+
+/*
  ######     ###    ########  ########          ######## ##     ## ######## ##    ## ######## 
 ##    ##   ## ##   ##     ## ##     ##         ##       ##     ## ##       ###   ##    ##    
 ##        ##   ##  ##     ## ##     ##         ##       ##     ## ##       ####  ##    ##    
