@@ -36,9 +36,7 @@ lutil_CachedObject;
 lutil_CachedObject* lutil_push_cached(lua_State* const L, void** list_head, size_t const size, bool* const setmt);
 void lutil_collect_cached(lutil_CachedObject* const cached, lua_State* const L, void** list_head);
 
-#define LUTIL_CACHED_SIZE ((sizeof(lutil_CachedObject) + 15) & ~15)
 #define LUTIL_OFS(n, f) ((uint8_t*)&((n*)0x10)->f - (uint8_t*)0x10)
-#define LUTIL_STRUCT(s, n) ((n*)(uint8_t*)s + LUTIL_CACHED_SIZE)
 
 typedef enum {
     LUTIL_U64,
@@ -47,8 +45,8 @@ typedef enum {
     LUTIL_FLOAT,
     LUTIL_INT,
     LUTIL_ENUM,
-    LUTIL_STRUCT,
-    LUTIL_UPTR
+    LUTIL_UPTR,
+    LUTIL_STRUCT
 }
 lutil_Type;
 
@@ -57,10 +55,12 @@ typedef struct {
     lutil_Type type;
     const char* id;
     size_t const offset;
+    struct lutil_StructDesc* const structure;
+    uint8_t count_field;
 }
 lutil_FieldDesc;
 
-typedef struct {
+typedef struct lutil_StructDesc {
     char const* const name;
     size_t const size;
     size_t const num_fields;

@@ -199,14 +199,24 @@ void lutil_collect_cached(lutil_CachedObject* const cached, lua_State* const L, 
     cached->ref = luaL_ref(L, LUA_REGISTRYINDEX);
 }
 
+typedef struct {
+    lutil_CachedObject cached;
+    void* data;
+    int parent_ref;
+}
+Structure;
+
+#define LUTIL_STRUCTURE_HEADER_SIZE ((sizeof(Structure) + 15) & ~15)
+#define LUTIL_STRUCTURE_DATA(s, n) ((n*)(uint8_t*)s + LUTIL_STRUCTURE_HEADER_SIZE)
+
 void* lutil_check_struct(lutil_StructDesc const* const desc, lua_State* const L, int const ndx) {
-    void* const cached = luaL_checkudata(L, ndx, desc->name);
-    return cached;
+    void* const structure = luaL_checkudata(L, ndx, desc->name);
+    return structure;
 }
 
 static int struct_index(lua_State* const L) {
     lutil_StructDesc* const desc = lua_touserdata(L, lua_upvalueindex(1));
-    lutil_CachedObject const* const cached = lutil_check_struct(desc, L, 1);
+    Structure const* const structure = lutil_check_struct(desc, L, 1);
 
     char const* const key = luaL_checkstring(L, 2);
     djb2_hash const hash = djb2(key);
@@ -217,7 +227,7 @@ static int struct_index(lua_State* const L) {
         lutil_FieldDesc const* const field = &desc->fields[index - 1];
 
         if (field->hash == hash && strcmp(field->id, key) == 0) {
-            uint8_t const* const struct_data = LUTIL_STRUCT(cached, uint8_t);
+            uint8_t const* const struct_data = structure->data;
             void const* const field_data = struct_data + field->offset;
 
             switch (field->type) {
@@ -259,7 +269,7 @@ static int struct_index(lua_State* const L) {
 
 static int struct_newindex(lua_State* const L) {
     lutil_StructDesc* const desc = lua_touserdata(L, lua_upvalueindex(1));
-    lutil_CachedObject* const cached = lutil_check_struct(desc, L, 1);
+    Structure* const structure = lutil_check_struct(desc, L, 1);
 
     char const* const key = luaL_checkstring(L, 2);
     djb2_hash const hash = djb2(key);
@@ -270,7 +280,7 @@ static int struct_newindex(lua_State* const L) {
         lutil_FieldDesc const* const field = &desc->fields[index - 1];
 
         if (field->hash == hash && strcmp(field->id, key) == 0) {
-            uint8_t* const struct_data = LUTIL_STRUCT(cached, uint8_t);
+            uint8_t* const struct_data = structure->data;
             void* const field_data = struct_data + field->offset;
 
             switch (field->type) {
@@ -299,7 +309,7 @@ static int struct_newindex(lua_State* const L) {
                     break;
 
                 case LUTIL_UPTR:
-                    *(uintptr_t*)field_data = lua_pushinteger(L, 3);
+                    *(uintptr_t*)field_data = luaL_checkinteger(L, 3);
                     return 0;
             }
 
@@ -312,17 +322,31 @@ static int struct_newindex(lua_State* const L) {
 
 static int struct_gc(lua_State* const L) {
     lutil_StructDesc* const desc = lua_touserdata(L, lua_upvalueindex(1));
-    lutil_CachedObject* const cached = lutil_check_struct(desc, L, 1);
+    Structure* const structure = lutil_check_struct(desc, L, 1);
 
+    if (structure->parent_ref != LUA_NOREF) {
+        luaL_unref(L, LUA_REGISTRYINDEX, structure->parent_ref);
+    }
+
+    lutil_CachedObject* const cached = &structure->cached;
     lutil_collect_cached(cached, L, &desc->free_list);
+
     return 0;
 }
 
 void* lutil_push_struct(lutil_StructDesc* const desc, lua_State* const L) {
     bool setmt = false;
-    lutil_CachedObject* const cached = lutil_push_cached(L, &desc->free_list, LUTIL_CACHED_SIZE + desc->size, &setmt);
-    void* const struct_data = LUTIL_STRUCT(cached, void);
-    memset(struct_data, 0, desc->size);
+
+    Structure* const structure = (Structure*)lutil_push_cached(
+        L,
+        &desc->free_list,
+        LUTIL_STRUCTURE_HEADER_SIZE + desc->size,
+        &setmt
+    );
+
+    structure->data = LUTIL_STRUCTURE_DATA(structure, void);
+    memset(structure->data, 0, desc->size);
+    structure->parent_ref = LUA_NOREF;
 
     if (setmt) {
         if (luaL_newmetatable(L, desc->name) != 0) {
@@ -342,5 +366,5 @@ void* lutil_push_struct(lutil_StructDesc* const desc, lua_State* const L) {
         lua_setmetatable(L, -2);
     }
 
-    return struct_data;
+    return structure->data;
 }
