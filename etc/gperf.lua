@@ -40,6 +40,7 @@ local function parse(struct, fields)
         ['uint32_t'] = 'LUTIL_U32',
         ['uint64_t'] = 'LUTIL_U64',
         ['struct'] = 'LUTIL_STRUCT',
+        ['uintptr_t'] = 'LUTIL_UPTR'
     }
 
     local data, count = {}, 0
@@ -114,7 +115,7 @@ local function emit(struct, fields, total)
     io.write(string.format('    sizeof(%s_fields) / sizeof(%s_fields[0]),\n', struct, struct))
     io.write(string.format('    %s_fields,\n', struct))
     io.write(string.format('    %d,\n', count))
-    io.write(string.format('    %s_field_lookup,', struct))
+    io.write(string.format('    %s_field_lookup,\n', struct))
     io.write(string.format('    NULL\n'))
     io.write(string.format('\n};\n'))
 end

@@ -47,7 +47,8 @@ typedef enum {
     LUTIL_FLOAT,
     LUTIL_INT,
     LUTIL_ENUM,
-    LUTIL_STRUCT
+    LUTIL_STRUCT,
+    LUTIL_UPTR
 }
 lutil_Type;
 

@@ -242,6 +242,10 @@ static int struct_index(lua_State* const L) {
                     lua_pushinteger(L, *(int const*)field_data);
                     return 1;
 
+                case LUTIL_UPTR:
+                    lua_pushinteger(L, *(uintptr_t const*)field_data);
+                    return 1;
+
                 case LUTIL_STRUCT:
                     break;
             }
@@ -293,6 +297,10 @@ static int struct_newindex(lua_State* const L) {
 
                 case LUTIL_STRUCT:
                     break;
+
+                case LUTIL_UPTR:
+                    *(uintptr_t*)field_data = lua_pushinteger(L, 3);
+                    return 0;
             }
 
             return luaL_error(L, "field %s type in %s is unknown", key, desc->name);
