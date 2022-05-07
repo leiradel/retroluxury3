@@ -26,144 +26,45 @@
  ######  ##     ## ##        ##        ####### ########    ###    ######## ##    ##    ##    
 */
 
-#define SAPP_EVENT_MT "sapp_event"
+static lutil_FieldDesc const sapp_event_fields[19] = {
+    /*   1 */ {DJB2HASH_C(0xd9cf79d8), LUTIL_U64, "frame_count", LUTIL_OFS(sapp_event, frame_count)},
+    /*   2 */ {DJB2HASH_C(0x7c9ebd07), LUTIL_ENUM, "type", LUTIL_OFS(sapp_event, type)},
+    /*   3 */ {DJB2HASH_C(0xbb20b728), LUTIL_ENUM, "key_code", LUTIL_OFS(sapp_event, key_code)},
+    /*   4 */ {DJB2HASH_C(0x34a71d1d), LUTIL_U32, "char_code", LUTIL_OFS(sapp_event, char_code)},
+    /*   5 */ {DJB2HASH_C(0x287a2f0e), LUTIL_BOOL, "key_repeat", LUTIL_OFS(sapp_event, key_repeat)},
+    /*   6 */ {DJB2HASH_C(0x09c26f07), LUTIL_U32, "modifiers", LUTIL_OFS(sapp_event, modifiers)},
+    /*   7 */ {DJB2HASH_C(0xe42516a9), LUTIL_ENUM, "mouse_button", LUTIL_OFS(sapp_event, mouse_button)},
+    /*   8 */ {DJB2HASH_C(0xd5be1645), LUTIL_FLOAT, "mouse_x", LUTIL_OFS(sapp_event, mouse_x)},
+    /*   9 */ {DJB2HASH_C(0xd5be1646), LUTIL_FLOAT, "mouse_y", LUTIL_OFS(sapp_event, mouse_y)},
+    /*  10 */ {DJB2HASH_C(0x8d80dcc9), LUTIL_FLOAT, "mouse_dx", LUTIL_OFS(sapp_event, mouse_dx)},
+    /*  11 */ {DJB2HASH_C(0x8d80dcca), LUTIL_FLOAT, "mouse_dy", LUTIL_OFS(sapp_event, mouse_dy)},
+    /*  12 */ {DJB2HASH_C(0x740d326b), LUTIL_FLOAT, "scroll_x", LUTIL_OFS(sapp_event, scroll_x)},
+    /*  13 */ {DJB2HASH_C(0x740d326c), LUTIL_FLOAT, "scroll_y", LUTIL_OFS(sapp_event, scroll_y)},
+    /*  14 */ {DJB2HASH_C(0x444b846f), LUTIL_INT, "num_touches", LUTIL_OFS(sapp_event, num_touches)},
+    /*  15 */ {DJB2HASH_C(0xf08d0700), LUTIL_STRUCT, "touches", LUTIL_OFS(sapp_event, touches)},
+    /*  16 */ {DJB2HASH_C(0x290c545c), LUTIL_INT, "window_width", LUTIL_OFS(sapp_event, window_width)},
+    /*  17 */ {DJB2HASH_C(0x2753a375), LUTIL_INT, "window_height", LUTIL_OFS(sapp_event, window_height)},
+    /*  18 */ {DJB2HASH_C(0xec986829), LUTIL_INT, "framebuffer_width", LUTIL_OFS(sapp_event, framebuffer_width)},
+    /*  19 */ {DJB2HASH_C(0x5c6230e2), LUTIL_INT, "framebuffer_height", LUTIL_OFS(sapp_event, framebuffer_height)},
+};
 
-typedef struct Event {
-    lutil_CachedObject cached;
-    sapp_event data;
-}
-Event;
+static uint8_t const sapp_event_field_lookup[60] = {
+    0, 0, 0, 0, 16, 0, 0, 0, 0, 0, 0, 14, 0, 0, 19, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 15, 8, 9, 12, 13, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 2, 0, 10, 11, 0, 0, 0, 0, 6, 3, 18, 0, 0, 1, 17, 5, 0
+};
 
-static void* free_events = NULL;
+static lutil_StructDesc sapp_event_desc = {
+    "sapp_event",
+    sizeof(sapp_event),
+    sizeof(sapp_event_fields) / sizeof(sapp_event_fields[0]),
+    sapp_event_fields,
+    60,
+    sapp_event_field_lookup,
+    NULL
+};
 
-static Event* event_check(lua_State* const L, int const ndx) {
-    return luaL_checkudata(L, ndx, SAPP_EVENT_MT);
-}
-
-static int event_touches(lua_State* const L) {
-    Event const* const self = event_check(L, 1);
-    lua_Integer const index = luaL_checkinteger(L, 2);
-
-    if (index < 1 || index >= self->data.num_touches) {
-        return luaL_error(L, "index %I out of bounds", index);
-    }
-
-    lua_pushinteger(L, self->data.touches[index - 1].identifier);
-    lua_pushnumber(L, self->data.touches[index - 1].pos_x);
-    lua_pushnumber(L, self->data.touches[index - 1].pos_y);
-    lua_pushboolean(L, self->data.touches[index - 1].changed);
-    return 4;
-}
-
-static int event_index(lua_State* const L) {
-    Event const* const self = event_check(L, 1);
-    char const* const key = luaL_checkstring(L, 2);
-    djb2_hash const hash = djb2(key);
-
-    switch (hash) {
-        case DJB2HASH_C(0xd9cf79d8): /* frame_count */
-            lua_pushinteger(L, self->data.frame_count);
-            return 1;
-
-        case DJB2HASH_C(0x7c9ebd07): /* type */
-            lua_pushinteger(L, self->data.type);
-            return 1;
-
-        case DJB2HASH_C(0xbb20b728): /* key_code */
-            lua_pushinteger(L, self->data.key_code);
-            return 1;
-
-        case DJB2HASH_C(0x34a71d1d): /* char_code */
-            lua_pushinteger(L, self->data.char_code);
-            return 1;
-
-        case DJB2HASH_C(0x287a2f0e): /* key_repeat */
-            lua_pushboolean(L, self->data.key_repeat);
-            return 1;
-
-        case DJB2HASH_C(0x09c26f07): /* modifiers */
-            lua_pushinteger(L, self->data.modifiers);
-            return 1;
-
-        case DJB2HASH_C(0xe42516a9): /* mouse_button */
-            lua_pushinteger(L, self->data.mouse_button);
-            return 1;
-
-        case DJB2HASH_C(0xd5be1645): /* mouse_x */
-            lua_pushnumber(L, self->data.mouse_x);
-            return 1;
-
-        case DJB2HASH_C(0xd5be1646): /* mouse_y */
-            lua_pushnumber(L, self->data.mouse_y);
-            return 1;
-
-        case DJB2HASH_C(0x8d80dcc9): /* mouse_dx */
-            lua_pushnumber(L, self->data.mouse_dx);
-            return 1;
-
-        case DJB2HASH_C(0x8d80dcca): /* mouse_dy */
-            lua_pushnumber(L, self->data.mouse_dy);
-            return 1;
-
-        case DJB2HASH_C(0x740d326b): /* scroll_x */
-            lua_pushnumber(L, self->data.scroll_x);
-            return 1;
-
-        case DJB2HASH_C(0x740d326c): /* scroll_y */
-            lua_pushnumber(L, self->data.scroll_y);
-            return 1;
-
-        case DJB2HASH_C(0x444b846f): /* num_touches */
-            lua_pushinteger(L, self->data.num_touches);
-            return 1;
-
-        case DJB2HASH_C(0xf08d0700): /* touches */
-            lua_pushcfunction(L, event_touches);
-            return 1;
-
-        case DJB2HASH_C(0x290c545c): /* window_width */
-            lua_pushinteger(L, self->data.window_width);
-            return 1;
-
-        case DJB2HASH_C(0x2753a375): /* window_height */
-            lua_pushinteger(L, self->data.window_height);
-            return 1;
-
-        case DJB2HASH_C(0xec986829): /* framebuffer_width */
-            lua_pushinteger(L, self->data.framebuffer_width);
-            return 1;
-
-        case DJB2HASH_C(0x5c6230e2): /* framebuffer_height */
-            lua_pushinteger(L, self->data.framebuffer_height);
-            return 1;
-    }
-
-    return luaL_error(L, "unknown field %s in %s", key, SAPP_EVENT_MT);
-}
-
-static int event_gc(lua_State* const L) {
-    Event* const self = event_check(L, 1);
-    lutil_collect_cached((lutil_CachedObject*)self, L, &free_events);
-    return 0;
-}
-
-static Event* event_push(lua_State* const L) {
-    bool setmt = false;
-    Event* self = (Event*)lutil_push_cached(L, &free_events, sizeof(*self), &setmt);
-
-    if (setmt) {
-        if (luaL_newmetatable(L, SAPP_EVENT_MT) != 0) {
-            lua_pushcfunction(L, event_index);
-            lua_setfield(L, -2, "__index");
-
-            lua_pushcfunction(L, event_gc);
-            lua_setfield(L, -2, "__gc");
-        }
-
-        lua_setmetatable(L, -2);
-    }
-
-    return self;
+static sapp_event* event_push(lua_State* const L) {
+    void* const struct_data = lutil_push_struct(&sapp_event_desc, L);
+    return struct_data;
 }
 
 /*
@@ -938,7 +839,8 @@ static void eventcb(sapp_event const* const event, void* const user_data) {
     if (event_cb_ref != LUA_NOREF) {
         lua_State* const L = user_data;
         lua_rawgeti(L, LUA_REGISTRYINDEX, event_cb_ref);
-        event_push(L)->data = *event;
+        sapp_event* const pushed = event_push(L);
+        *pushed = *event;
 
         if (lutil_pcall(L, 1, 0) != LUA_OK) {
 #ifndef NDEBUG

@@ -2,6 +2,8 @@
 
 #include <lauxlib.h>
 
+#include <string.h>
+
 static int traceback(lua_State* const L) {
     luaL_traceback(L, L, lua_tostring(L, -1), 1);
     return 1;
@@ -195,4 +197,142 @@ void lutil_collect_cached(lutil_CachedObject* const cached, lua_State* const L, 
 
     lua_pushvalue(L, 1);
     cached->ref = luaL_ref(L, LUA_REGISTRYINDEX);
+}
+
+void* lutil_check_struct(lutil_StructDesc const* const desc, lua_State* const L, int const ndx) {
+    void* const cached = luaL_checkudata(L, ndx, desc->name);
+    return cached;
+}
+
+static int struct_index(lua_State* const L) {
+    lutil_StructDesc* const desc = lua_touserdata(L, lua_upvalueindex(1));
+    lutil_CachedObject const* const cached = lutil_check_struct(desc, L, 1);
+
+    char const* const key = luaL_checkstring(L, 2);
+    djb2_hash const hash = djb2(key);
+    size_t const position = hash % desc->lookup_size;
+    uint8_t const index = desc->lookup[position];
+
+    if (index != 0) {
+        lutil_FieldDesc const* const field = &desc->fields[index - 1];
+
+        if (field->hash == hash && strcmp(field->id, key) == 0) {
+            uint8_t const* const struct_data = LUTIL_STRUCT(cached, uint8_t);
+            void const* const field_data = struct_data + field->offset;
+
+            switch (field->type) {
+                case LUTIL_U64:
+                    lua_pushinteger(L, *(uint64_t const*)field_data);
+                    return 1;
+
+                case LUTIL_U32:
+                    lua_pushinteger(L, *(uint32_t const*)field_data);
+                    return 1;
+
+                case LUTIL_BOOL:
+                    lua_pushboolean(L, *(bool const*)field_data);
+                    return 1;
+
+                case LUTIL_FLOAT:
+                    lua_pushnumber(L, *(float const*)field_data);
+                    return 1;
+
+                case LUTIL_INT:
+                case LUTIL_ENUM:
+                    lua_pushinteger(L, *(int const*)field_data);
+                    return 1;
+
+                case LUTIL_STRUCT:
+                    break;
+            }
+
+            return luaL_error(L, "field %s type in %s is unknown", key, desc->name);
+        }
+    }
+
+    return luaL_error(L, "unknown field %s in %s", key, desc->name);
+}
+
+static int struct_newindex(lua_State* const L) {
+    lutil_StructDesc* const desc = lua_touserdata(L, lua_upvalueindex(1));
+    lutil_CachedObject* const cached = lutil_check_struct(desc, L, 1);
+
+    char const* const key = luaL_checkstring(L, 2);
+    djb2_hash const hash = djb2(key);
+    size_t const position = hash % desc->lookup_size;
+    uint8_t const index = desc->lookup[position];
+
+    if (index != 0) {
+        lutil_FieldDesc const* const field = &desc->fields[index - 1];
+
+        if (field->hash == hash && strcmp(field->id, key) == 0) {
+            uint8_t* const struct_data = LUTIL_STRUCT(cached, uint8_t);
+            void* const field_data = struct_data + field->offset;
+
+            switch (field->type) {
+                case LUTIL_U64:
+                    *(uint64_t*)field_data = luaL_checkinteger(L, 3);
+                    return 0;
+
+                case LUTIL_U32:
+                    *(uint32_t*)field_data = luaL_checkinteger(L, 3);
+                    return 0;
+
+                case LUTIL_BOOL:
+                    *(bool*)field_data = lua_toboolean(L, 3);
+                    return 0;
+
+                case LUTIL_FLOAT:
+                    *(float*)field_data = luaL_checknumber(L, 3);
+                    return 0;
+
+                case LUTIL_INT:
+                case LUTIL_ENUM:
+                    *(int*)field_data = luaL_checkinteger(L, 3);
+                    return 0;
+
+                case LUTIL_STRUCT:
+                    break;
+            }
+
+            return luaL_error(L, "field %s type in %s is unknown", key, desc->name);
+        }
+    }
+
+    return luaL_error(L, "unknown field %s in %s", key, desc->name);
+}
+
+static int struct_gc(lua_State* const L) {
+    lutil_StructDesc* const desc = lua_touserdata(L, lua_upvalueindex(1));
+    lutil_CachedObject* const cached = lutil_check_struct(desc, L, 1);
+
+    lutil_collect_cached(cached, L, &desc->free_list);
+    return 0;
+}
+
+void* lutil_push_struct(lutil_StructDesc* const desc, lua_State* const L) {
+    bool setmt = false;
+    lutil_CachedObject* const cached = lutil_push_cached(L, &desc->free_list, LUTIL_CACHED_SIZE + desc->size, &setmt);
+    void* const struct_data = LUTIL_STRUCT(cached, void);
+    memset(struct_data, 0, desc->size);
+
+    if (setmt) {
+        if (luaL_newmetatable(L, desc->name) != 0) {
+            lua_pushlightuserdata(L, desc);
+            lua_pushcclosure(L, struct_index, 1);
+            lua_setfield(L, -2, "__index");
+
+            lua_pushlightuserdata(L, desc);
+            lua_pushcclosure(L, struct_newindex, 1);
+            lua_setfield(L, -2, "__newindex");
+
+            lua_pushlightuserdata(L, desc);
+            lua_pushcclosure(L, struct_gc, 1);
+            lua_setfield(L, -2, "__gc");
+        }
+
+        lua_setmetatable(L, -2);
+    }
+
+    return struct_data;
 }
